@@ -5,7 +5,7 @@ export default function App() {
   return (
     <View style={styles.container}>
      <Text style={{ fontSize: 20, fontWeight: "bold", color: "blue" }}>
-  Welcome to AgriLink 🚜
+  Welcome to AgriLink - shanuja  🚜
 </Text>
 
       <StatusBar style="auto" />
