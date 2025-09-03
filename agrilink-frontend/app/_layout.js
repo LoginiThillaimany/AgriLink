@@ -26,6 +26,30 @@ export default function RootLayout() {
             presentation: 'modal'
           }} 
         />
+
+         <Stack.Screen 
+          name="signup" 
+          options={{ 
+            title: 'Sign Up',
+            presentation: 'modal'
+          }} 
+        />
+
+         <Stack.Screen 
+          name="forgetpassword" 
+          options={{ 
+            title: 'Forget Password',
+            presentation: 'modal'
+          }} 
+        />
+
+          <Stack.Screen 
+          name="useraccount" 
+          options={{ 
+            title: 'User Account',
+            presentation: 'modal'
+          }} 
+        />
       </Stack>
     </SafeAreaView>
   );
