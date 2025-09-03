@@ -1,23 +1,16 @@
-import { StatusBar } from 'expo-status-bar';
-import { StyleSheet, Text, View } from 'react-native';
+import React from 'react';
+import AppNavigator from './src/navigation/AppNavigator'; // Adjusted path
 
 export default function App() {
-  return (
-    <View style={styles.container}>
-     <Text style={{ fontSize: 20, fontWeight: "bold", color: "blue" }}>
-  Welcome to AgriLink 🚜
-</Text>
+  // For now, hardcode user type and ID (replace with auth logic later)
+  const userType = 'farmer'; // Change to 'buyer' to test buyer view
+  const userId = '123';     // Replace with real user ID from authentication
 
-      <StatusBar style="auto" />
-    </View>
-  );
+  // Quick check to avoid errors
+  if (!userType || !userId) {
+    console.error('Oops! userType or userId is missing!');
+    return <Text style={{ textAlign: 'center', padding: 20 }}>Loading... (Check console)</Text>;
+  }
+
+  return <AppNavigator userType={userType} userId={userId} />;
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#fff',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-});
