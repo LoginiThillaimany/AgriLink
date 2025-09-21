@@ -1,75 +1,59 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
+const validator = require('validator');
 
 const userSchema = new mongoose.Schema({
   fullName: {
     type: String,
-    required: [true, 'Full name is required'],
+    required: [true, 'Please provide your full name'],
     trim: true,
-    maxlength: [100, 'Full name cannot exceed 100 characters']
+    maxlength: [50, 'Name cannot be more than 50 characters']
   },
   phoneNumber: {
     type: String,
-    required: [true, 'Phone number is required'],
+    required: [true, 'Please provide your phone number'],
     unique: true,
-    match: [/^\+?[1-9]\d{1,14}$/, 'Please enter a valid phone number']
+    validate: {
+      validator: function(v) {
+        return /^[+]*[(]{0,1}[0-9]{1,4}[)]{0,1}[-\s\./0-9]*$/.test(v);
+      },
+      message: 'Please provide a valid phone number'
+    }
+  },
+  email: {
+    type: String,
+    required: [true, 'Please provide your email'],
+    unique: true,
+    lowercase: true,
+    validate: [validator.isEmail, 'Please provide a valid email']
   },
   password: {
     type: String,
-    required: [true, 'Password is required'],
-    minlength: [6, 'Password must be at least 6 characters long']
+    required: [true, 'Please provide a password'],
+    minlength: [6, 'Password should be at least 6 characters'],
+    select: false
   },
   userType: {
     type: String,
-    required: [true, 'User type is required'],
-    enum: {
-      values: ['farmer', 'consumer'],
-      message: 'User type must be either farmer or consumer'
-    }
-  },
-  isVerified: {
-    type: Boolean,
-    default: false
+    enum: ['farmer', 'consumer'],
+    default: 'farmer'
   },
   createdAt: {
     type: Date,
     default: Date.now
-  },
-  updatedAt: {
-    type: Date,
-    default: Date.now
   }
 });
 
-// Hash password before saving
+// Encrypt password before saving
 userSchema.pre('save', async function(next) {
   if (!this.isModified('password')) return next();
-  
-  try {
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
-
-// Update updatedAt timestamp before saving
-userSchema.pre('save', function(next) {
-  this.updatedAt = Date.now();
+  this.password = await bcrypt.hash(this.password, 12);
   next();
 });
 
 // Compare password method
-userSchema.methods.comparePassword = async function(candidatePassword) {
-  return await bcrypt.compare(candidatePassword, this.password);
-};
-
-// Remove password from JSON output
-userSchema.methods.toJSON = function() {
-  const user = this.toObject();
-  delete user.password;
-  return user;
+userSchema.methods.correctPassword = async function(candidatePassword, userPassword) {
+  return await bcrypt.compare(candidatePassword, userPassword);
 };
 
 module.exports = mongoose.model('User', userSchema);

@@ -3,6 +3,51 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView 
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+// Add this import
+import { Alert } from 'react-native';
+
+// Update the handleSignup function
+const handleSignup = async () => {
+  // Basic validation
+  if (password !== confirmPassword) {
+    Alert.alert('Error', 'Passwords do not match');
+    return;
+  }
+  
+  setIsLoading(true);
+  
+  try {
+    const response = await fetch('http://your-server-ip:5000/api/v1/auth/signup', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        fullName,
+        phoneNumber,
+        email,
+        password,
+        userType,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Save the token (you might want to use AsyncStorage or context)
+      console.log('Signup successful', data);
+      // After successful signup, navigate to home
+      router.replace('/');
+    } else {
+      Alert.alert('Error', data.message || 'Signup failed');
+    }
+  } catch (error) {
+    Alert.alert('Error', 'Network error. Please try again.');
+    console.error('Signup error:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState('');

@@ -3,6 +3,44 @@ import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'reac
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+// Add this import
+import { Alert } from 'react-native';
+
+// Update the handleLogin function
+const handleLogin = async () => {
+  setIsLoading(true);
+  
+  try {
+    const response = await fetch('http://your-server-ip:5000/api/v1/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        phoneNumber,
+        password,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Save the token (you might want to use AsyncStorage or context)
+      console.log('Login successful', data);
+      // After successful login, navigate to home
+      router.replace('/');
+    } else {
+      Alert.alert('Error', data.message || 'Login failed');
+    }
+  } catch (error) {
+    Alert.alert('Error', 'Network error. Please try again.');
+    console.error('Login error:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
 
 export default function LoginPage() {
   const [phoneNumber, setPhoneNumber] = useState('');
