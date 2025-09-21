@@ -39,13 +39,17 @@ export default function SignupPage() {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-        <Image 
-          source={{ uri: 'https://images.unsplash.com/photo-1535016120720-40c646be5580?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' }}
-          style={styles.logo}
-        />
+        {/* Logo Container to center the logo */}
+        <View style={styles.logoContainer}>
+          <Image 
+            source={require('../assets/Logo.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+        </View>
         
         <Text style={styles.title}>Create Account</Text>
-        <Text style={styles.subtitle}>Join the AgriLink community</Text>
+        <Text style={styles.subtitle}>Join the AgriiLink community</Text>
         
         <View style={styles.userTypeContainer}>
           <Text style={styles.userTypeLabel}>I am a:</Text>
@@ -162,8 +166,6 @@ export default function SignupPage() {
             <Text style={styles.loginLink}>Login</Text>
           </TouchableOpacity>
         </View>
-        
-       
       </View>
     </ScrollView>
   );
@@ -179,12 +181,13 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingVertical: 40,
   },
-  logo: {
-    width: 100,
-    height: 100,
-    borderRadius: 20,
-    alignSelf: 'center',
+  logoContainer: {
+    alignItems: 'center', // Centers the logo horizontally
     marginBottom: 20,
+  },
+  logoImage: {
+    width: 500, // Adjusted to a more reasonable size
+    height: 150, // Adjusted to a more reasonable size
   },
   title: {
     fontSize: 28,
@@ -278,14 +281,5 @@ const styles = StyleSheet.create({
   loginLink: {
     color: '#1B5E20',
     fontWeight: 'bold',
-  },
-  termsText: {
-    color: '#666',
-    textAlign: 'center',
-    fontSize: 12,
-    marginTop: 10,
-  },
-  termsLink: {
-    color: '#1B5E20',
   },
 });

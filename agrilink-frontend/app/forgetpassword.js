@@ -108,10 +108,13 @@ export default function ForgotPasswordPage() {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-        <Image 
-          source={{ uri: 'https://images.unsplash.com/photo-1535016120720-40c646be5580?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' }}
-          style={styles.logo}
-        />
+      <View style={styles.logoContainer}>
+              <Image 
+                source={require('../assets/Logo.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
+            </View>
         
         <Text style={styles.title}>Reset Password</Text>
         
@@ -263,6 +266,15 @@ export default function ForgotPasswordPage() {
 }
 
 const styles = StyleSheet.create({
+
+   logoContainer: {
+    alignItems: 'center', // This centers the logo horizontally
+    marginBottom: 30,
+  },
+  logoImage: {
+    width: 500,
+    height: 150,
+  },
   scrollContainer: {
     flexGrow: 1,
   },

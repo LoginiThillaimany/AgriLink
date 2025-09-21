@@ -29,13 +29,16 @@ export default function LoginPage() {
 
   return (
     <View style={styles.container}>
-      <Image 
-        source={{ uri: 'https://images.unsplash.com/photo-1535016120720-40c646be5580?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' }}
-        style={styles.logo}
-      />
+      <View style={styles.logoContainer}>
+        <Image 
+          source={require('../assets/Logo.png')}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
+      </View>
       
       <Text style={styles.title}>Welcome Back</Text>
-      <Text style={styles.subtitle}>Sign in to your AgriLink account</Text>
+      <Text style={styles.subtitle}>Sign in to your AgriiLink account</Text>
       
       <View style={styles.inputContainer}>
         <Ionicons name="call-outline" size={20} color="#666" style={styles.inputIcon} />
@@ -102,12 +105,13 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'center',
   },
-  logo: {
-    width: 100,
-    height: 100,
-    borderRadius: 20,
-    alignSelf: 'center',
+  logoContainer: {
+    alignItems: 'center', // This centers the logo horizontally
     marginBottom: 30,
+  },
+  logoImage: {
+    width: 500,
+    height: 150,
   },
   title: {
     fontSize: 28,

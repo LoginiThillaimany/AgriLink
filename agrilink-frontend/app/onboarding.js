@@ -30,10 +30,11 @@ export default function OnboardingPage() {
       case 1:
         return (
           <View style={styles.screen}>
-            <Image 
-              source={{ uri: 'https://images.unsplash.com/photo-1625246335526-8715fe0c2dbe?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80' }}
-              style={styles.image}
-            />
+           <Image 
+                     source={require('../assets/On1.png')} // Adjust path if needed
+                     style={styles.image}
+                     resizeMode="contain"
+                   />
             <Text style={styles.title}>Connect Farmers & Consumers</Text>
             <Text style={styles.description}>
               AgriLink directly connects farmers with consumers, eliminating middlemen and ensuring fair prices for both.
@@ -43,10 +44,11 @@ export default function OnboardingPage() {
       case 2:
         return (
           <View style={styles.screen}>
-            <Image 
-              source={{ uri: 'https://images.unsplash.com/photo-1574856344991-aaa31b6f4ce3?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80' }}
-              style={styles.image}
-            />
+           <Image 
+                     source={require('../assets/On2.png')} // Adjust path if needed
+                     style={styles.image}
+                     resizeMode="contain"
+                   />
             <Text style={styles.title}>Fresh From Farm to Table</Text>
             <Text style={styles.description}>
               Get the freshest vegetables and fruits directly from local farmers, harvested at peak ripeness.
@@ -56,10 +58,11 @@ export default function OnboardingPage() {
       case 3:
         return (
           <View style={styles.screen}>
-            <Image 
-              source={{ uri: 'https://images.unsplash.com/photo-1605244863941-3a3c186f4706?ixlib=rb-4.0.3&auto=format&fit=crop&w=600&q=80' }}
-              style={styles.image}
-            />
+             <Image 
+                     source={require('../assets/On3.png')} // Adjust path if needed
+                     style={styles.image}
+                     resizeMode="contain"
+                   />
             <Text style={styles.title}>Support Local Agriculture</Text>
             <Text style={styles.description}>
               Build a sustainable food ecosystem by supporting local farmers and reducing food miles.
@@ -120,7 +123,7 @@ const styles = StyleSheet.create({
     padding: 10,
   },
   skipText: {
-    color: '#1B5E20',
+    color: '#133332',
     fontSize: 16,
   },
   screen: {
@@ -137,7 +140,7 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#1B5E20',
+    color: '#133332',
     textAlign: 'center',
     marginBottom: 15,
   },
@@ -160,14 +163,14 @@ const styles = StyleSheet.create({
     marginHorizontal: 5,
   },
   activeIndicator: {
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#133332',
     width: 20,
   },
   inactiveIndicator: {
     backgroundColor: '#ccc',
   },
   nextButton: {
-    backgroundColor: '#1B5E20',
+    backgroundColor: '#133332',
     padding: 15,
     borderRadius: 30,
     alignItems: 'center',
