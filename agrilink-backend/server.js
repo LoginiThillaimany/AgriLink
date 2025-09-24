@@ -11,7 +11,8 @@ app.use(cors());
 app.use(express.json());
 
 // MongoDB connect
-mongoose.connect(process.env.MONGO_URI)
+const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/agrilink";
+mongoose.connect(mongoUri)
   .then(() => console.log("✅ MongoDB connected"))
   .catch(err => console.log("❌ MongoDB error:", err));
 

@@ -9,10 +9,13 @@ const productSchema = new mongoose.Schema({
   price: { type: Number, required: true },
   unit: { type: String, required: true },
   quantity: { type: Number, required: true },
+  minOrder: { type: Number, default: 1 },
   image: { type: String },
   harvestDate: { type: Date },
   bestByDate: { type: Date },
   deliveryOptions: [String],
+  soldOut: { type: Boolean, default: false },
+  sales: { type: Number, default: 0 },
 });
 
 const Product = mongoose.model("Product", productSchema);
