@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from "react";
+// ProductList.js
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,177 +7,222 @@ import {
   FlatList,
   TouchableOpacity,
   Image,
+  SafeAreaView,
+  Dimensions,
+  Animated,
+  StatusBar,
+  Alert,
 } from "react-native";
 import { useNavigation, useRoute } from "@react-navigation/native";
 import { Ionicons } from "@expo/vector-icons";
 import { Picker } from "@react-native-picker/picker";
+import { LinearGradient } from "expo-linear-gradient";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import Input from "../components/ui/Input";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
+import colors from "../styles/colors";
+
+const { width } = Dimensions.get("window");
 
 const ProductList = () => {
   const [products, setProducts] = useState([]);
   const [filteredProducts, setFilteredProducts] = useState([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
   const [minPrice, setMinPrice] = useState("");
   const [maxPrice, setMaxPrice] = useState("");
-  const route = useRoute();
-  const navigation = useNavigation();
+  const [loading, setLoading] = useState(true);
+  const [showFilters, setShowFilters] = useState(false);
+  const [sortBy, setSortBy] = useState("name");
 
-  const categories = ["All", "Seeds", "Fertilizers", "Tools", "Pesticides"];
+  const navigation = useNavigation();
+  const route = useRoute();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  const categories = ["All", "Seeds", "Vegetables", "Fruits"];
+  const selectedCategory = route.params?.category || "All";
 
   useEffect(() => {
     fetchProducts();
-    if (route.params) {
-      if (route.params.search) setSearchQuery(route.params.search);
-      if (route.params.category) setSelectedCategory(route.params.category);
-    }
-  }, [route.params]);
+    startAnimations();
+  }, []);
+
+  const startAnimations = () => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
+    ]).start();
+  };
 
   const fetchProducts = async () => {
     try {
+      setLoading(true);
       const response = await fetch("http://localhost:5000/api/products");
-      const data = await response.json();
-      setProducts(data);
-      setFilteredProducts(data);
+      if (response.ok) {
+        const data = await response.json();
+        setProducts(data);
+        // Filter products based on selected category
+        const filtered = selectedCategory === "All"
+          ? data
+          : data.filter(product => product.category === selectedCategory);
+        setFilteredProducts(filtered);
+      } else {
+        // Fallback to dummy data
+        const mockProducts = [
+          {
+            _id: "seed1", id: 1, name: "Organic Tomato Seeds", price: 450,
+            description: "High-quality organic tomato seeds from certified farms.",
+            image: "https://images.unsplash.com/photo-1592841200221-a6898f307baa?w=500",
+            category: "Seeds", farmer: "farmer1", stock: 150, unit: "packets",
+            rating: 4.8, reviews: 124, createdAt: "2024-01-15T10:00:00Z"
+          },
+          {
+            _id: "veg1", id: 5, name: "Fresh Carrots", price: 200,
+            description: "Fresh, crunchy carrots harvested this morning.",
+            image: "https://images.unsplash.com/photo-1582515073490-39981397c445?w=500",
+            category: "Vegetables", farmer: "farmer2", stock: 50, unit: "kg",
+            rating: 4.6, reviews: 89, createdAt: "2024-01-18T10:00:00Z"
+          },
+          {
+            _id: "fruit1", id: 9, name: "Organic Apples", price: 350,
+            description: "Sweet and juicy organic apples from local orchards.",
+            image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=500",
+            category: "Fruits", farmer: "farmer1", stock: 40, unit: "kg",
+            rating: 4.7, reviews: 156, createdAt: "2024-01-16T10:00:00Z"
+          },
+          // Add more products as needed
+        ];
+        setProducts(mockProducts);
+        const filtered = selectedCategory === "All"
+          ? mockProducts
+          : mockProducts.filter(product => product.category === selectedCategory);
+        setFilteredProducts(filtered);
+      }
     } catch (error) {
       console.error("Error fetching products:", error);
+      // Fallback to dummy data on network error
+      const mockProducts = [
+        {
+          _id: "seed1", id: 1, name: "Organic Tomato Seeds", price: 450,
+          description: "High-quality organic tomato seeds from certified farms.",
+          image: "https://images.unsplash.com/photo-1592841200221-a6898f307baa?w=500",
+          category: "Seeds", farmer: "farmer1", stock: 150, unit: "packets",
+          rating: 4.8, reviews: 124, createdAt: "2024-01-15T10:00:00Z"
+        },
+        {
+          _id: "veg1", id: 5, name: "Fresh Carrots", price: 200,
+          description: "Fresh, crunchy carrots harvested this morning.",
+          image: "https://images.unsplash.com/photo-1582515073490-39981397c445?w=500",
+          category: "Vegetables", farmer: "farmer2", stock: 50, unit: "kg",
+          rating: 4.6, reviews: 89, createdAt: "2024-01-18T10:00:00Z"
+        },
+        {
+          _id: "fruit1", id: 9, name: "Organic Apples", price: 350,
+          description: "Sweet and juicy organic apples from local orchards.",
+          image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=500",
+          category: "Fruits", farmer: "farmer1", stock: 40, unit: "kg",
+          rating: 4.7, reviews: 156, createdAt: "2024-01-16T10:00:00Z"
+        },
+      ];
+      setProducts(mockProducts);
+      const filtered = selectedCategory === "All"
+        ? mockProducts
+        : mockProducts.filter(product => product.category === selectedCategory);
+      setFilteredProducts(filtered);
+    } finally {
+      setLoading(false);
     }
   };
 
-  useEffect(() => {
-    let filtered = products;
-
-    if (searchQuery) {
-      filtered = filtered.filter((p) =>
-        p.name.toLowerCase().includes(searchQuery.toLowerCase())
-      );
+  // 🛒 Add to Cart
+  const addToCart = async (productId) => {
+    try {
+      await fetch("http://localhost:5000/api/cart/add", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ productId, quantity: 1 }),
+      });
+      Alert.alert("Success", "✅ Product added to cart!");
+    } catch (error) {
+      console.error("Error adding to cart:", error);
+      Alert.alert("Error", "Something went wrong!");
     }
-
-    if (selectedCategory !== "All") {
-      filtered = filtered.filter((p) => p.category === selectedCategory);
-    }
-
-    if (minPrice) {
-      filtered = filtered.filter((p) => p.price >= parseFloat(minPrice));
-    }
-
-    if (maxPrice) {
-      filtered = filtered.filter((p) => p.price <= parseFloat(maxPrice));
-    }
-
-    setFilteredProducts(filtered);
-  }, [searchQuery, selectedCategory, minPrice, maxPrice, products]);
+  };
 
   const renderProduct = ({ item }) => (
-    <TouchableOpacity
-      className="bg-white p-4 m-2 rounded-2xl shadow-md w-[48%]"
-      onPress={() => navigation.navigate("ProductDetail", { product: item })}
+    <Animated.View
+      style={{
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }],
+        width: (width - 48) / 2,
+        marginBottom: 16,
+        marginHorizontal: 4,
+      }}
     >
-      <Image
-        source={{
-          uri:
-            item.image || "https://via.placeholder.com/150x150?text=Product",
-        }}
-        className="w-full h-28 rounded-xl mb-3"
-        resizeMode="cover"
-      />
-      <Text
-        className="text-green-800 font-bold text-base mb-1"
-        numberOfLines={1}
-      >
-        {item.name}
-      </Text>
-      <Text className="text-gray-600 text-sm mb-1">
-        {item.category || "General"}
-      </Text>
-      <Text className="text-green-700 font-extrabold text-lg">
-        LKR {item.price}
-      </Text>
-    </TouchableOpacity>
+      <Card variant="elevated" style={{ padding: 0, overflow: "hidden" }}>
+        <TouchableOpacity
+          onPress={() => navigation.navigate("ProductDetail", { product: item })}
+          activeOpacity={0.9}
+        >
+          <Image
+            source={{ uri: item.image || "https://via.placeholder.com/200x150?text=Product" }}
+            style={{ width: "100%", height: 120, borderTopLeftRadius: 16, borderTopRightRadius: 16 }}
+            resizeMode="cover"
+          />
+          <View style={{ padding: 12 }}>
+            <Text style={{ fontWeight: "700", fontSize: 14 }}>{item.name}</Text>
+            <Text style={{ fontWeight: "800", fontSize: 16, marginBottom: 8 }}>
+              LKR {item.price}
+            </Text>
+            {/* 🛒 Add to Cart button */}
+            <Button
+              title="Add to Cart"
+              onPress={() => addToCart(item._id)}
+              variant="gradient"
+              size="sm"
+            />
+          </View>
+        </TouchableOpacity>
+      </Card>
+    </Animated.View>
   );
 
   return (
-    <View className="flex-1 bg-green-50 p-4">
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.neutral[50] }}>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.neutral[50]} />
       {/* Header */}
-      <Text className="text-3xl font-extrabold text-green-800 mb-6">
-        🛍 Products
-      </Text>
-
-      {/* Search Bar */}
-      <View className="flex-row items-center bg-white rounded-full shadow-sm px-4 py-3 mb-4">
-        <Ionicons name="search-outline" size={20} color="#6b7280" />
-        <TextInput
-          className="flex-1 ml-2 text-gray-700"
-          placeholder="Search products..."
-          value={searchQuery}
-          onChangeText={setSearchQuery}
-        />
-      </View>
-
-      {/* Filter Card */}
-      <View className="bg-white p-4 rounded-2xl shadow mb-5">
-        <Text className="text-lg font-bold text-green-800 mb-3 flex-row items-center">
-          <Ionicons name="filter-outline" size={18} color="#047857" /> Filters
-        </Text>
-
-        {/* Category Picker */}
-        <View className="mb-4">
-          <Text className="text-gray-600 mb-1">Category</Text>
-          <View className="border border-green-300 rounded-xl overflow-hidden">
-            <Picker
-              selectedValue={selectedCategory}
-              onValueChange={(val) => setSelectedCategory(val)}
-            >
-              {categories.map((cat) => (
-                <Picker.Item key={cat} label={cat} value={cat} />
-              ))}
-            </Picker>
-          </View>
+      <LinearGradient
+        colors={[colors.primary[600], colors.primary[500]]}
+        style={{ padding: 20, borderBottomLeftRadius: 20, borderBottomRightRadius: 20 }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Text style={{ fontSize: 24, fontWeight: "800", color: "white", flex: 1 }}>
+            {selectedCategory === "All" ? "All Products" : selectedCategory}
+          </Text>
+          {/* 🛒 Cart Icon → Navigate to Cart Page */}
+          <TouchableOpacity onPress={() => navigation.navigate("Cart")}>
+            <Ionicons name="cart-outline" size={24} color="white" />
+          </TouchableOpacity>
         </View>
-
-        {/* Price Range */}
-        <View className="flex-row">
-          <View className="flex-1 mr-2">
-            <Text className="text-gray-600 mb-1">Min Price</Text>
-            <TextInput
-              className="bg-green-50 p-3 rounded-lg border border-green-300"
-              placeholder="0"
-              value={minPrice}
-              onChangeText={setMinPrice}
-              keyboardType="numeric"
-            />
-          </View>
-          <View className="flex-1 ml-2">
-            <Text className="text-gray-600 mb-1">Max Price</Text>
-            <TextInput
-              className="bg-green-50 p-3 rounded-lg border border-green-300"
-              placeholder="1000"
-              value={maxPrice}
-              onChangeText={setMaxPrice}
-              keyboardType="numeric"
-            />
-          </View>
-        </View>
-      </View>
+      </LinearGradient>
 
       {/* Product Grid */}
-      {filteredProducts.length === 0 ? (
-        <View className="items-center mt-20">
-          <Ionicons name="leaf-outline" size={80} color="#9ca3af" />
-          <Text className="text-gray-600 text-lg mt-4">
-            No products found
-          </Text>
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <LoadingSpinner size={50} />
+          <Text>Loading products...</Text>
         </View>
       ) : (
         <FlatList
           data={filteredProducts}
           renderItem={renderProduct}
-          keyExtractor={(item) => item._id || item.id}
+          keyExtractor={(item) => item._id}
           numColumns={2}
-          columnWrapperStyle={{ justifyContent: "space-between" }}
-          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ padding: 16 }}
         />
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
@@ -6,124 +6,215 @@ import {
   ScrollView,
   TouchableOpacity,
   Image,
+  Alert,
+  Dimensions,
+  Animated,
+  StatusBar,
+  SafeAreaView,
 } from "react-native";
 import { useNavigation } from "@react-navigation/native";
+import { useAuth } from '../context/AuthContext';
 import { Ionicons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import Button from "../components/ui/Button";
+import Card from "../components/ui/Card";
+import LoadingSpinner from "../components/ui/LoadingSpinner";
+import colors from "../styles/colors";
+
+const { width } = Dimensions.get("window");
 
 const ProductHistory = () => {
-  const [recentlyViewed, setRecentlyViewed] = useState([
-    {
-      id: 1,
-      name: "Organic Seeds",
-      price: 10,
-      image: "https://via.placeholder.com/150x150?text=Seeds",
-    },
-    {
-      id: 2,
-      name: "Fertilizer Pack",
-      price: 25,
-      image: "https://via.placeholder.com/150x150?text=Fert",
-    },
-  ]);
-  const [purchased, setPurchased] = useState([
-    {
-      id: 3,
-      name: "Garden Tools",
-      price: 15,
-      image: "https://via.placeholder.com/150x150?text=Tools",
-    },
-    {
-      id: 4,
-      name: "Pesticides",
-      price: 20,
-      image: "https://via.placeholder.com/150x150?text=Pest",
-    },
-  ]);
-  const navigation = useNavigation();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [sortBy, setSortBy] = useState("newest");
 
-  const renderProductCard = (item) => (
-    <TouchableOpacity
-      className="bg-white p-3 rounded-2xl shadow-md m-2 w-40"
-      onPress={() => navigation.navigate("ProductDetail", { product: item })}
+  const navigation = useNavigation();
+  const { user } = useAuth();
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const slideAnim = useRef(new Animated.Value(30)).current;
+
+  useEffect(() => {
+    if (user) {
+      fetchFarmerProducts();
+    }
+    startAnimations();
+  }, [user]);
+
+  const startAnimations = () => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, { toValue: 1, duration: 800, useNativeDriver: true }),
+      Animated.timing(slideAnim, { toValue: 0, duration: 600, useNativeDriver: true }),
+    ]).start();
+  };
+
+  const fetchFarmerProducts = async () => {
+    try {
+      setLoading(true);
+      const response = await fetch(`http://localhost:5000/api/products/farmer/${user.userId}`);
+      const data = await response.json();
+      setProducts(data);
+    } catch (error) {
+      console.error("Error fetching farmer products:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEditProduct = (product) => {
+    // Navigate to AddProduct with product data for editing
+    navigation.navigate("AddProduct", { product });
+  };
+
+  const handleDeleteProduct = async (productId) => {
+    Alert.alert(
+      "Delete Product",
+      "Are you sure you want to delete this product?",
+      [
+        { text: "Cancel", style: "cancel" },
+        {
+          text: "Delete",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const response = await fetch(`http://localhost:5000/api/products/${productId}`, {
+                method: "DELETE",
+              });
+              if (response.ok) {
+                Alert.alert("Success", "Product deleted successfully!");
+                fetchFarmerProducts(); // Refresh the list
+              } else {
+                Alert.alert("Error", "Failed to delete product");
+              }
+            } catch (error) {
+              console.error("Error deleting product:", error);
+              Alert.alert("Error", "Something went wrong!");
+            }
+          },
+        },
+      ]
+    );
+  };
+
+  const filteredProducts = products
+    .filter(product =>
+      product.name && product.name.toLowerCase().includes(searchQuery.toLowerCase())
+    )
+    .sort((a, b) => {
+      if (sortBy === "newest") return new Date(b.createdAt) - new Date(a.createdAt);
+      if (sortBy === "oldest") return new Date(a.createdAt) - new Date(b.createdAt);
+      if (sortBy === "name") return a.name.localeCompare(b.name);
+      if (sortBy === "price-low") return a.price - b.price;
+      if (sortBy === "price-high") return b.price - a.price;
+      return 0;
+    });
+
+  const renderProductCard = ({ item }) => (
+    <Animated.View
+      style={{
+        opacity: fadeAnim,
+        transform: [{ translateY: slideAnim }],
+        width: (width - 48) / 2,
+        marginBottom: 16,
+        marginHorizontal: 4,
+      }}
     >
-      <Image
-        source={{ uri: item.image }}
-        className="w-full h-28 rounded-xl mb-2"
-        resizeMode="cover"
-      />
-      <Text
-        className="text-green-800 font-bold text-sm mb-1"
-        numberOfLines={1}
-      >
-        {item.name}
-      </Text>
-      <Text className="text-green-600 font-semibold">LKR {item.price}</Text>
-    </TouchableOpacity>
+      <Card variant="elevated" style={{ padding: 0, overflow: "hidden" }}>
+        <Image
+          source={{ uri: item.image || "https://via.placeholder.com/200x150?text=Product" }}
+          style={{ width: "100%", height: 120, borderTopLeftRadius: 16, borderTopRightRadius: 16 }}
+          resizeMode="cover"
+        />
+        <View style={{ padding: 12 }}>
+          <Text style={{ fontWeight: "700", fontSize: 14, marginBottom: 4 }} numberOfLines={2}>
+            {item.name}
+          </Text>
+          <Text style={{ fontWeight: "800", fontSize: 16, marginBottom: 4 }}>
+            LKR {item.price}
+          </Text>
+          <Text style={{ fontSize: 12, color: colors.neutral[600], marginBottom: 8 }}>
+            Added: {new Date(item.createdAt).toLocaleDateString()}
+          </Text>
+          {item.description && (
+            <Text style={{ fontSize: 12, color: colors.neutral[500], marginBottom: 8 }} numberOfLines={2}>
+              {item.description}
+            </Text>
+          )}
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <Button
+              title="Edit"
+              onPress={() => handleEditProduct(item)}
+              variant="outline"
+              size="sm"
+              style={{ flex: 1, marginRight: 4 }}
+            />
+            <Button
+              title="Delete"
+              onPress={() => handleDeleteProduct(item._id)}
+              variant="danger"
+              size="sm"
+              style={{ flex: 1, marginLeft: 4 }}
+            />
+          </View>
+        </View>
+      </Card>
+    </Animated.View>
   );
 
   return (
-    <ScrollView className="flex-1 bg-green-50 p-4">
+    <SafeAreaView style={{ flex: 1, backgroundColor: colors.neutral[50] }}>
+      <StatusBar barStyle="dark-content" backgroundColor={colors.neutral[50]} />
+
       {/* Header */}
-      <Text className="text-3xl font-extrabold text-green-800 mb-6">
-        📜 Product History
-      </Text>
+      <LinearGradient
+        colors={[colors.primary[600], colors.primary[500]]}
+        style={{ padding: 20, borderBottomLeftRadius: 20, borderBottomRightRadius: 20 }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center" }}>
+          <Text style={{ fontSize: 24, fontWeight: "800", color: "white", flex: 1 }}>
+            My Products
+          </Text>
+          <TouchableOpacity onPress={() => navigation.navigate("AddProduct")}>
+            <Ionicons name="add-circle" size={28} color="white" />
+          </TouchableOpacity>
+        </View>
+      </LinearGradient>
 
-      {/* Recently Viewed */}
-      <View className="mb-8">
-        <View className="flex-row items-center mb-3">
-          <Ionicons name="eye-outline" size={20} color="#047857" />
-          <Text className="ml-2 text-xl font-bold text-green-800">
-            Recently Viewed
+      {/* Product Grid */}
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <LoadingSpinner size={50} />
+          <Text style={{ marginTop: 16, color: colors.neutral[600] }}>
+            Loading your products...
           </Text>
         </View>
-
-        {recentlyViewed.length === 0 ? (
-          <Text className="text-gray-500">No recently viewed products</Text>
-        ) : (
-          <FlatList
-            data={recentlyViewed}
-            renderItem={({ item }) => renderProductCard(item)}
-            keyExtractor={(item) => item.id.toString()}
-            horizontal
-            showsHorizontalScrollIndicator={false}
-          />
-        )}
-      </View>
-
-      {/* Purchased Products */}
-      <View>
-        <View className="flex-row items-center mb-3">
-          <Ionicons name="cart-outline" size={20} color="#047857" />
-          <Text className="ml-2 text-xl font-bold text-green-800">
-            Purchased Products
+      ) : filteredProducts.length === 0 ? (
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center", padding: 20 }}>
+          <Ionicons name="leaf-outline" size={64} color={colors.neutral[400]} />
+          <Text style={{ fontSize: 18, fontWeight: "600", color: colors.neutral[600], marginTop: 16 }}>
+            No products added yet
           </Text>
-        </View>
-
-        {purchased.length === 0 ? (
-          <View className="items-center mt-6">
-            <Ionicons name="bag-outline" size={50} color="#9ca3af" />
-            <Text className="text-gray-500 mt-2">
-              You haven’t purchased anything yet
-            </Text>
-            <TouchableOpacity
-              className="bg-green-600 px-6 py-3 rounded-full mt-4 shadow-md"
-              onPress={() => navigation.navigate("Home")}
-            >
-              <Text className="text-white font-bold">🛒 Start Shopping</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <FlatList
-            data={purchased}
-            renderItem={({ item }) => renderProductCard(item)}
-            keyExtractor={(item) => item.id.toString()}
-            numColumns={2}
-            columnWrapperStyle={{ justifyContent: "space-between" }}
-            scrollEnabled={false}
+          <Text style={{ fontSize: 14, color: colors.neutral[500], textAlign: "center", marginTop: 8 }}>
+            Start by adding your first product to showcase to customers
+          </Text>
+          <Button
+            title="Add Product"
+            onPress={() => navigation.navigate("AddProduct")}
+            variant="gradient"
+            style={{ marginTop: 24 }}
           />
-        )}
-      </View>
-    </ScrollView>
+        </View>
+      ) : (
+        <FlatList
+          data={filteredProducts}
+          renderItem={renderProductCard}
+          keyExtractor={(item) => item._id}
+          numColumns={2}
+          contentContainerStyle={{ padding: 16 }}
+          showsVerticalScrollIndicator={false}
+        />
+      )}
+    </SafeAreaView>
   );
 };
 

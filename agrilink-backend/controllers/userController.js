@@ -32,6 +32,28 @@ export const updateProfile = async (req, res) => {
       phone: user.phone,
     });
   } catch (err) {
+    console.error('Registration error:', err);
+    res.status(500).json({ error: err.message });
+  }
+};
+
+export const register = async (req, res) => {
+  try {
+    console.log('Request body:', req.body);
+    const { name, email, password, role, phone } = req.body;
+    console.log('Extracted phone:', phone);
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
+      return res.status(400).json({ error: 'User already exists' });
+    }
+    const hashedPassword = bcrypt.hashSync(password, 10);
+    const userData = { name, email, password: hashedPassword, role, phone };
+    console.log('User data to save:', userData);
+    const newUser = new User(userData);
+    const savedUser = await newUser.save();
+    res.status(201).json({ message: 'User registered successfully', userId: savedUser._id });
+  } catch (err) {
+    console.error('Registration error:', err);
     res.status(500).json({ error: err.message });
   }
 };
@@ -44,7 +66,13 @@ export const login = async (req, res) => {
       return res.status(401).json({ error: 'Invalid credentials' });
     }
     // In real app, generate JWT token
-    res.json({ message: 'Login successful', userId: user._id });
+    res.json({
+      message: 'Login successful',
+      userId: user._id,
+      role: user.role,
+      name: user.name,
+      email: user.email
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
