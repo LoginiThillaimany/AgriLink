@@ -1,18 +1,18 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, ActivityIndicator } from "react-native";
-import { useSearchParams, router } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import axios from "axios";
-
-const API_URL = "http://192.168.1.5:5000/api/products"; // change IP
+import { PRODUCTS_URL } from "../../lib/api";
+import { toastError, toastSuccess, toastWrap } from "../../lib/toast";
 
 export default function EditProduct() {
-  const { id } = useSearchParams();
+  const { id } = useLocalSearchParams();
   const [form, setForm] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProduct = async () => {
     try {
-      const res = await axios.get(`${API_URL}/${id}`);
+      const res = await axios.get(`${PRODUCTS_URL}/${id}`);
       setForm(res.data);
     } catch (error) {
       console.error(error);
@@ -30,12 +30,15 @@ export default function EditProduct() {
 
   const handleUpdate = async () => {
     try {
-      await axios.put(`${API_URL}/${id}`, form);
-      Alert.alert("Success", "Product updated successfully");
+      await toastWrap(
+        axios.put(`${PRODUCTS_URL}/${id}`, form),
+        { loading: "Updating product...", success: "Product updated", error: "Failed to update" }
+      );
+      toastSuccess("Product updated successfully");
       router.back(); // return to ProductDetails
     } catch (error) {
       console.error(error);
-      Alert.alert("Error", "Could not update product");
+      toastError("Could not update product");
     }
   };
 

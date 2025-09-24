@@ -7,12 +7,19 @@ import {
   ScrollView,
   StyleSheet,
   Alert,
+  Image,
 } from "react-native";
 import axios from "axios";
+import { PRODUCTS_URL } from "../../lib/api";
 import DateTimePicker from "@react-native-community/datetimepicker";
+import { useRouter } from "expo-router";
+import { Platform } from "react-native";
+import * as ImagePicker from 'expo-image-picker';
+import { toastError, toastSuccess, toastWrap } from "../../lib/toast";
 
 
-export default function AddProduct({ navigation }) {
+export default function AddProduct() {
+  const router = useRouter();
   // Form states
   const [name, setName] = useState("");
   const [category, setCategory] = useState("");
@@ -25,6 +32,7 @@ export default function AddProduct({ navigation }) {
   const [harvestDate, setHarvestDate] = useState(new Date());
   const [bestByDate, setBestByDate] = useState(new Date());
   const [deliveryOptions, setDeliveryOptions] = useState([]);
+  const [image, setImage] = useState(null);
 
   const [showHarvestPicker, setShowHarvestPicker] = useState(false);
   const [showBestByPicker, setShowBestByPicker] = useState(false);
@@ -36,6 +44,27 @@ export default function AddProduct({ navigation }) {
         ? prev.filter((o) => o !== option)
         : [...prev, option]
     );
+  };
+
+  // Pick image
+  const pickImage = async () => {
+    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (permissionResult.granted === false) {
+      Alert.alert("Permission to access camera roll is required!");
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 1,
+      base64: true,
+    });
+
+    if (!result.canceled) {
+      setImage(`data:image/jpeg;base64,${result.assets[0].base64}`);
+    }
   };
 
   // Handle form submit
@@ -57,18 +86,19 @@ export default function AddProduct({ navigation }) {
       harvestDate,
       bestByDate,
       deliveryOptions,
+      image,
     };
 
     try {
-      await axios.post("http://localhost:5000/api/products", newProduct);
-      Alert.alert("Success", "Product added successfully!");
-      navigation.goBack();
+      await toastWrap(
+        axios.post(PRODUCTS_URL, newProduct),
+        { loading: "Adding product...", success: "Product added", error: "Failed to add" }
+      );
+      toastSuccess("Product added successfully");
+      router.back();
     } catch (error) {
       console.error("Error adding product:", error.response?.data || error.message);
-      Alert.alert(
-        "Error",
-        error.response?.data?.message || "Error adding product"
-      );
+      toastError(error.response?.data?.message || "Error adding product");
     }
   };
 
@@ -108,6 +138,14 @@ export default function AddProduct({ navigation }) {
         style={[styles.input, { height: 80 }]}
         multiline
       />
+
+      {/* Image Upload */}
+      <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+        <Text style={styles.imageButtonText}>
+          {image ? "Change Image" : "Upload Image"}
+        </Text>
+      </TouchableOpacity>
+      {image && <Image source={{ uri: image }} style={styles.imagePreview} />}
 
       {/* Price & Unit */}
       <View style={styles.row}>
@@ -154,14 +192,16 @@ export default function AddProduct({ navigation }) {
         </Text>
       </TouchableOpacity>
       {showHarvestPicker && (
-        <DateTimePicker
-          value={harvestDate}
-          mode="date"
-          onChange={(e, date) => {
-            setShowHarvestPicker(false);
-            if (date) setHarvestDate(date);
-          }}
-        />
+        Platform.OS === "web" ? null : (
+          <DateTimePicker
+            value={harvestDate}
+            mode="date"
+            onChange={(e, date) => {
+              setShowHarvestPicker(false);
+              if (date) setHarvestDate(date);
+            }}
+          />
+        )
       )}
 
       {/* Best By Date */}
@@ -174,14 +214,16 @@ export default function AddProduct({ navigation }) {
         </Text>
       </TouchableOpacity>
       {showBestByPicker && (
-        <DateTimePicker
-          value={bestByDate}
-          mode="date"
-          onChange={(e, date) => {
-            setShowBestByPicker(false);
-            if (date) setBestByDate(date);
-          }}
-        />
+        Platform.OS === "web" ? null : (
+          <DateTimePicker
+            value={bestByDate}
+            mode="date"
+            onChange={(e, date) => {
+              setShowBestByPicker(false);
+              if (date) setBestByDate(date);
+            }}
+          />
+        )
       )}
 
       {/* Delivery Options */}
@@ -235,4 +277,13 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   buttonText: { color: "#fff", fontWeight: "bold" },
+  imageButton: {
+    backgroundColor: "#3498db",
+    padding: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    marginBottom: 15,
+  },
+  imageButtonText: { color: "#fff", fontWeight: "bold" },
+  imagePreview: { width: 100, height: 100, borderRadius: 8, marginBottom: 15 },
 });

@@ -8,6 +8,7 @@ export default function ProductLayout() {
       <Stack.Screen name="AddProduct" options={{ title: "Add Product" }} />
       <Stack.Screen name="EditProduct" options={{ title: "Edit Product" }} />
       <Stack.Screen name="ProductDetails" options={{ title: "Product Details" }} />
+      <Stack.Screen name="SalesTracking" options={{ title: "Sales Tracking" }} />
     </Stack>
   );
 }

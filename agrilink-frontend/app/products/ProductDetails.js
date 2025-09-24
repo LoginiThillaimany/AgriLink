@@ -1,18 +1,17 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, StyleSheet, TouchableOpacity, Alert, ActivityIndicator } from "react-native";
-import { useSearchParams, router } from "expo-router";
+import { useLocalSearchParams, router } from "expo-router";
 import axios from "axios";
-
-const API_URL = "http://192.168.1.5:5000/api/products"; // change IP
+import { PRODUCTS_URL } from "../../lib/api";
 
 export default function ProductDetails() {
-  const { id } = useSearchParams();
+  const { id } = useLocalSearchParams();
   const [product, setProduct] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchProduct = async () => {
     try {
-      const res = await axios.get(`${API_URL}/${id}`);
+      const res = await axios.get(`${PRODUCTS_URL}/${id}`);
       setProduct(res.data);
     } catch (error) {
       console.error(error);
@@ -29,7 +28,7 @@ export default function ProductDetails() {
         text: "Delete",
         onPress: async () => {
           try {
-            await axios.delete(`${API_URL}/${id}`);
+            await axios.delete(`${PRODUCTS_URL}/${id}`);
             Alert.alert("Deleted", "Product deleted successfully");
             router.back(); // go back to ProductList
           } catch (error) {

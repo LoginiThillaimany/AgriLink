@@ -25,7 +25,7 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
-        name="../products/ProductList"   // 👈 correct path
+        name="products/ProductList"
         options={{
           title: "Products",
           tabBarIcon: ({ color }) => (
@@ -36,8 +36,9 @@ export default function TabLayout() {
 
       {/* Floating Add Button (not a real screen) */}
      <Tabs.Screen
-        name="addButton" // fake name, must exist
+        name="addButton"
         options={{
+            href: null,
             tabBarButton: () => (
             <TouchableOpacity
                 onPress={() => router.push("/products/AddProduct")}
