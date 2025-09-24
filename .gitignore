@@ -1,0 +1,11 @@
+# dependencies
+node_modules/
+agrilink-backend/node_modules/
+agrilink-frontend/node_modules/
+
+# lock files
+package-lock.json
+
+# misc
+.DS_Store
+.env

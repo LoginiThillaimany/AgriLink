@@ -1,29 +1,26 @@
 {
   "name": "agrilink-frontend",
-  "license": "0BSD",
   "version": "1.0.0",
-  "main": "index.js",
+  "private": true,
+  "main": "expo-router/entry",
   "scripts": {
-    "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web"
+    "start": "expo start --clear --non-interactive",
+    "android": "expo run:android --non-interactive",
+    "ios": "expo run:ios --non-interactive",
+    "web": "expo start --web --non-interactive"
   },
   "dependencies": {
     "@expo/metro-runtime": "~5.0.4",
-    "@tailwindcss/vite": "^4.1.12",
-    "expo": "~53.0.22",
+    "@expo/vector-icons": "^14.0.0",
+    "@react-native-async-storage/async-storage": "2.1.2",
+    "expo": "~53.0.0",
+    "expo-router": "~5.1.5",
     "expo-status-bar": "~2.2.3",
-    "nativewind": "^4.1.23",
+    "lucide-react-native": "^0.544.0",
     "react": "19.0.0",
     "react-dom": "19.0.0",
-    "react-native": "0.79.6",
+    "react-native": "0.79.5",
     "react-native-svg": "15.11.2",
-    "react-native-web": "^0.20.0",
-    "tailwindcss": "4.1"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.20.0"
-  },
-  "private": true
+    "react-native-web": "^0.20.0"
+  }
 }

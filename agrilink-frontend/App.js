@@ -4,8 +4,8 @@ import { StyleSheet, Text, View } from 'react-native';
 export default function App() {
   return (
     <View style={styles.container}>
-     <Text style={{ fontSize: 20, fontWeight: "bold", color: "blue" }}>
-  Welcome to AgriLink - shanuja  🚜
+     <Text style={{ fontSize: 20, fontWeight: "bold", color: "green" }}>
+  Welcome to AgriLink App!
 </Text>
 
       <StatusBar style="auto" />
