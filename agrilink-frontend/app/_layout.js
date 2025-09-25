@@ -50,6 +50,13 @@ export default function RootLayout() {
             presentation: 'modal'
           }} 
         />
+        <Stack.Screen 
+          name="home" 
+          options={{ 
+            title: 'Home',
+            headerShown: false
+          }} 
+        />
       </Stack>
     </SafeAreaView>
   );

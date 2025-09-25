@@ -1,29 +1,59 @@
 // app/useraccount.js
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView, Alert } from 'react-native';
-import { router } from 'expo-router';
-import { useState, useEffect } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
+import { useEffect, useState } from 'react';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 // import * as ImagePicker from 'expo-image-picker';
 
 export default function UserAccountPage() {
   const [userData, setUserData] = useState({
-    fullName: 'John Farmer',
-    phoneNumber: '+1 (555) 123-4567',
-    email: 'john.farmer@agrilink.com',
-    userType: 'farmer',
-    location: 'Green Valley Farms',
-    joinDate: 'January 15, 2023'
+    fullName: '',
+    phoneNumber: '',
+    email: '',
+    userType: '',
+    location: '',
+    joinDate: ''
   });
   
   const [isEditing, setIsEditing] = useState(false);
   const [profileImage, setProfileImage] = useState('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80');
   const [showPassword, setShowPassword] = useState(false);
   const [tempPassword, setTempPassword] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Load user data from storage or API
-    // For demo purposes, we're using static data
+    loadUserData();
   }, []);
+
+  const loadUserData = async () => {
+    try {
+      const storedUserData = await AsyncStorage.getItem('userData');
+      if (storedUserData) {
+        const user = JSON.parse(storedUserData);
+        setUserData({
+          fullName: user.fullName || '',
+          phoneNumber: user.phoneNumber || '',
+          email: user.email || '',
+          userType: user.userType || '',
+          location: user.location || 'Not specified',
+          joinDate: user.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { 
+            year: 'numeric', 
+            month: 'long', 
+            day: 'numeric' 
+          }) : 'Recently joined'
+        });
+      } else {
+        Alert.alert('Error', 'No user data found. Please login again.');
+        router.replace('/login');
+      }
+    } catch (error) {
+      console.error('Error loading user data:', error);
+      Alert.alert('Error', 'Failed to load user data');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const toggleEdit = () => {
     if (isEditing) {
@@ -98,6 +128,14 @@ export default function UserAccountPage() {
       ]
     );
   };
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]}>
+        <Text style={styles.loadingText}>Loading profile...</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -412,5 +450,14 @@ const styles = StyleSheet.create({
   },
   logoutText: {
     color: '#E53935',
+  },
+  loadingContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 18,
+    color: '#1B5E20',
+    fontWeight: '500',
   },
 });

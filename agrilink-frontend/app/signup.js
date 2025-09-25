@@ -1,10 +1,9 @@
 // app/signup.js
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
-// Add this import
-import { Alert } from 'react-native';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 
 // Update the handleSignup function
 const handleSignup = async () => {
@@ -79,7 +78,10 @@ export default function SignupPage() {
       const data = await response.json();
       if (response.ok) {
         console.log('Signup successful', data);
-        router.replace('/');
+        // Store user data for profile page
+        await AsyncStorage.setItem('userData', JSON.stringify(data.data.user));
+        await AsyncStorage.setItem('authToken', data.token);
+        router.replace('/home');
       } else {
         Alert.alert('Signup failed', data.message || 'Please try again');
       }
