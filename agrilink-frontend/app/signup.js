@@ -1,8 +1,8 @@
 // app/signup.js
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
+import { Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 // Add this import
 import { Alert } from 'react-native';
 
@@ -60,17 +60,35 @@ export default function SignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleSignup = () => {
+  const handleSignup = async () => {
+    if (!fullName || !phoneNumber || !email || !password) {
+      Alert.alert('Error', 'Please fill all required fields');
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
+    }
     setIsLoading(true);
-    // Your signup logic here
-    console.log('Signup attempted with:', { fullName, phoneNumber, email, userType });
-    
-    // Simulate signup process
-    setTimeout(() => {
+    try {
+      const response = await fetch('http://localhost:5000/api/v1/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, phoneNumber, email, password, userType }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        console.log('Signup successful', data);
+        router.replace('/');
+      } else {
+        Alert.alert('Signup failed', data.message || 'Please try again');
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      Alert.alert('Error', 'Network error. Please try again.');
+    } finally {
       setIsLoading(false);
-      // After successful signup, navigate to home
-      router.replace('/');
-    }, 1500);
+    }
   };
 
   const togglePasswordVisibility = () => {

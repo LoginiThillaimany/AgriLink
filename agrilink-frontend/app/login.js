@@ -1,8 +1,8 @@
 // app/login.js
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
+import { Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 // Add this import
 import { Alert } from 'react-native';
 
@@ -48,17 +48,31 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
+    if (!phoneNumber || !password) {
+      Alert.alert('Error', 'Please provide phone number and password');
+      return;
+    }
     setIsLoading(true);
-    // Your login logic here
-    console.log('Login attempted with:', phoneNumber);
-    
-    // Simulate login process
-    setTimeout(() => {
+    try {
+      const response = await fetch('http://localhost:5000/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber, password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        console.log('Login successful', data);
+        router.replace('/');
+      } else {
+        Alert.alert('Login failed', data.message || 'Please try again');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('Error', 'Network error. Please try again.');
+    } finally {
       setIsLoading(false);
-      // After successful login, navigate to home
-      router.replace('/');
-    }, 1500);
+    }
   };
 
   const togglePasswordVisibility = () => {
