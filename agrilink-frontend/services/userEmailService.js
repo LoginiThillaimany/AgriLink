@@ -6,10 +6,10 @@ import emailjs from '@emailjs/browser';
 export class UserEmailService {
   constructor() {
     this.baseConfig = {
-      SERVICE_ID: 'abc123', // Your EmailJS service ID
-      TEMPLATE_ID: 'template01', // Your EmailJS template ID
-      PUBLIC_KEY: '4t5EJfFXy2t17c_a7', // Your EmailJS public key
-      FROM_EMAIL: 'kuhananthchandrapalan@gmail.com',
+      SERVICE_ID: 'service_shanu', // Your EmailJS service ID
+      TEMPLATE_ID: 'template001', // Your EmailJS template ID
+      PUBLIC_KEY: 'x81NpKL7Q438yTjZK', // Your EmailJS public key
+      FROM_EMAIL: 'shanukanthan41@gmail.com',
       FROM_NAME: 'AgriLink Team'
     };
   }

@@ -3,19 +3,19 @@
 
 export const EMAILJS_CONFIG = {
   // Your EmailJS Service ID (found in EmailJS dashboard)
-  SERVICE_ID: 'abc123',
+  SERVICE_ID: 'service_shanu',
   
   // Your EmailJS Template ID (found in EmailJS dashboard)
-  TEMPLATE_ID: 'template_otp',
+  TEMPLATE_ID: 'template001',
   
   // Your EmailJS Public Key (found in EmailJS dashboard)
-  PUBLIC_KEY: '4t5EJfFXy2t17c_a7',
+  PUBLIC_KEY: 'x81NpKL7Q438yTjZK',
   
   // Email template parameters
   TEMPLATE_PARAMS: {
     app_name: 'AgriLink',
     from_name: 'AgriLink Team',
-    from_email: 'kuhananthchandrapalan@gmail.com'
+    from_email: 'shanukanthan41@gmail.com'
   }
 };
 

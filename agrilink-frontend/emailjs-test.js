@@ -8,23 +8,23 @@ export const testEmailJS = async () => {
     console.log('Testing EmailJS configuration...');
     
     // Your actual EmailJS credentials
-    const serviceId = 'abc123';
-    const templateId = 'template01';
-    const publicKey = '4t5EJfFXy2t17c_a7';
-    
+    const serviceId = 'service_shanu';
+    const templateId = 'template001';
+    const publicKey = 'x81NpKL7Q438yTjZK';
+   
     console.log('Service ID:', serviceId);
     console.log('Template ID:', templateId);
     console.log('Public Key:', publicKey);
     
     // Test email parameters
     const templateParams = {
-      email: 'kuhananthchandrapalan@gmail.com', // EmailJS expects 'email' parameter
-      to_email: 'kuhananthchandrapalan@gmail.com', // Also include to_email for compatibility
+      email: 'shanukanthan41@gmail.com', // EmailJS expects 'email' parameter
+      to_email: 'shanukanthan41@gmail.com', // Also include to_email for compatibility
       otp_code: '123456',
       user_name: 'Test User',
       app_name: 'AgriLink',
       from_name: 'AgriLink Team',
-      from_email: 'kuhananthchandrapalan@gmail.com'
+      from_email: 'shanukanthan41@gmail.com'
     };
     
     console.log('Sending test email...');
@@ -48,4 +48,4 @@ export const testEmailJS = async () => {
 
 // Usage:
 // Call testEmailJS() in your browser console or component to test
-// This will send a test email to kuhananthchandrapalan@gmail.com
+// This will send a test email to shanukanthan41@gmail.com
