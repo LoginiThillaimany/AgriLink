@@ -1,13 +1,13 @@
 // app/farmerHome.js
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 
 export default function FarmerHome() {
   const categories = [
-    { id: 1, name: 'Vegetables', listings: 24, icon: 'leaf-outline' },
-    { id: 2, name: 'Fruits', listings: 18, icon: 'nutrition-outline' },
-    { id: 3, name: 'Grains', listings: 12, icon: 'restaurant-outline' },
-    { id: 4, name: 'Redos', listings: 8, icon: 'refresh-outline' },
+    { id: 1, name: 'Vegetables', listings: 24 },
+    { id: 2, name: 'Fruits', listings: 18 },
+    { id: 3, name: 'Grains', listings: 12 },
+    { id: 4, name: 'Redos', listings: 8 },
   ];
 
   return (
@@ -15,7 +15,7 @@ export default function FarmerHome() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Farmer Homepage</Text>
-        <Ionicons name="notifications-outline" size={24} color="#333" />
+        <Text style={styles.notificationIcon}>🔔</Text>
       </View>
 
       {/* Product Categories */}
@@ -23,7 +23,7 @@ export default function FarmerHome() {
       <View style={styles.categoriesGrid}>
         {categories.map((cat) => (
           <TouchableOpacity key={cat.id} style={styles.categoryCard}>
-            <Ionicons name={cat.icon} size={28} color="#1B5E20" />
+            <Text style={styles.categoryIcon}>🌱</Text>
             <Text style={styles.categoryName}>{cat.name}</Text>
             <Text style={styles.categoryListings}>{cat.listings} Listings</Text>
           </TouchableOpacity>
@@ -33,36 +33,36 @@ export default function FarmerHome() {
       {/* Quick Actions */}
       <Text style={styles.sectionTitle}>Quick Actions</Text>
       <TouchableOpacity style={styles.addButton}>
-        <Ionicons name="add-circle-outline" size={20} color="#fff" />
+        <Text style={styles.addButtonIcon}>➕</Text>
         <Text style={styles.addButtonText}>Add New Product</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.actionButton}>
-        <Ionicons name="bar-chart-outline" size={20} color="#333" />
+        <Text style={styles.actionIcon}>📊</Text>
         <Text style={styles.actionText}>View Sales</Text>
       </TouchableOpacity>
 
       <TouchableOpacity style={styles.actionButton}>
-        <Ionicons name="list-outline" size={20} color="#333" />
+        <Text style={styles.actionIcon}>📋</Text>
         <Text style={styles.actionText}>My Listings</Text>
       </TouchableOpacity>
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
         <TouchableOpacity style={[styles.navItem, styles.navActive]}>
-          <Ionicons name="home-outline" size={22} color="#1B5E20" />
+          <Text style={[styles.navIcon, styles.navIconActive]}>🏠</Text>
           <Text style={[styles.navText, styles.navTextActive]}>Farmer Home</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="cart-outline" size={22} color="#666" />
+        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/home_customer')}>
+          <Text style={styles.navIcon}>🛒</Text>
           <Text style={styles.navText}>Customer Home</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="basket-outline" size={22} color="#666" />
+          <Text style={styles.navIcon}>📦</Text>
           <Text style={styles.navText}>My Products</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="person-outline" size={22} color="#666" />
+          <Text style={styles.navIcon}>👤</Text>
           <Text style={styles.navText}>Profile</Text>
         </TouchableOpacity>
       </View>
@@ -87,6 +87,9 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     color: '#1B5E20',
+  },
+  notificationIcon: {
+    fontSize: 24,
   },
   sectionTitle: {
     fontSize: 18,
@@ -113,6 +116,10 @@ const styles = StyleSheet.create({
     shadowRadius: 3,
     elevation: 2,
   },
+  categoryIcon: {
+    fontSize: 28,
+    marginBottom: 8,
+  },
   categoryName: {
     fontSize: 16,
     fontWeight: '600',
@@ -133,11 +140,15 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginBottom: 15,
   },
+  addButtonIcon: {
+    fontSize: 20,
+    color: '#fff',
+    marginRight: 6,
+  },
   addButtonText: {
     color: '#fff',
     fontWeight: '600',
     fontSize: 16,
-    marginLeft: 6,
   },
   actionButton: {
     flexDirection: 'row',
@@ -151,8 +162,11 @@ const styles = StyleSheet.create({
     shadowRadius: 2,
     elevation: 1,
   },
+  actionIcon: {
+    fontSize: 20,
+    marginRight: 10,
+  },
   actionText: {
-    marginLeft: 10,
     fontSize: 15,
     fontWeight: '500',
     color: '#333',
@@ -168,6 +182,13 @@ const styles = StyleSheet.create({
   },
   navItem: {
     alignItems: 'center',
+  },
+  navIcon: {
+    fontSize: 22,
+    marginBottom: 4,
+  },
+  navIconActive: {
+    color: '#1B5E20',
   },
   navText: {
     fontSize: 12,

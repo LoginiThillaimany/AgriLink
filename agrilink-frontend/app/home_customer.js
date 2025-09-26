@@ -1,13 +1,12 @@
 // app/customerHome.js
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 export default function CustomerHome() {
   const categories = [
-    { id: 1, name: 'Vegetables', icon: 'leaf-outline' },
-    { id: 2, name: 'Fruits', icon: 'nutrition-outline' },
-    { id: 3, name: 'Grains', icon: 'restaurant-outline' },
+    { id: 1, name: 'Vegetables' },
+    { id: 2, name: 'Fruits' },
+    { id: 3, name: 'Grains' },
   ];
 
   const products = [
@@ -24,12 +23,12 @@ export default function CustomerHome() {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Fresh Harvest</Text>
-        <Ionicons name="cart-outline" size={24} color="#1B5E20" />
+        <Text style={styles.cartIcon}>🛒</Text>
       </View>
 
       {/* Search */}
       <View style={styles.searchContainer}>
-        <Ionicons name="search-outline" size={20} color="#666" style={{ marginRight: 8 }} />
+        <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
           style={styles.searchInput}
           placeholder="Search products..."
@@ -42,7 +41,7 @@ export default function CustomerHome() {
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categories}>
         {categories.map((cat) => (
           <View key={cat.id} style={styles.categoryCard}>
-            <Ionicons name={cat.icon} size={28} color="#1B5E20" />
+            <Text style={styles.categoryIcon}>🌱</Text>
             <Text style={styles.categoryText}>{cat.name}</Text>
           </View>
         ))}
@@ -65,20 +64,20 @@ export default function CustomerHome() {
 
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="home-outline" size={22} color="#666" />
+        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/home_farmer')}>
+          <Text style={styles.navIcon}>🏠</Text>
           <Text style={styles.navText}>Farmer Home</Text>
         </TouchableOpacity>
         <TouchableOpacity style={[styles.navItem, styles.navActive]}>
-          <Ionicons name="cart-outline" size={22} color="#1B5E20" />
+          <Text style={[styles.navIcon, styles.navIconActive]}>🛒</Text>
           <Text style={[styles.navText, styles.navTextActive]}>Customer Home</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="basket-outline" size={22} color="#666" />
+          <Text style={styles.navIcon}>📦</Text>
           <Text style={styles.navText}>My Orders</Text>
         </TouchableOpacity>
         <TouchableOpacity style={styles.navItem}>
-          <Ionicons name="person-outline" size={22} color="#666" />
+          <Text style={styles.navIcon}>👤</Text>
           <Text style={styles.navText}>Profile</Text>
         </TouchableOpacity>
       </View>
@@ -104,6 +103,9 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#1B5E20',
   },
+  cartIcon: {
+    fontSize: 24,
+  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -114,6 +116,10 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     borderWidth: 1,
     borderColor: '#ddd',
+  },
+  searchIcon: {
+    fontSize: 20,
+    marginRight: 8,
   },
   searchInput: {
     flex: 1,
@@ -141,6 +147,10 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 3,
     elevation: 2,
+  },
+  categoryIcon: {
+    fontSize: 28,
+    marginBottom: 8,
   },
   categoryText: {
     marginTop: 8,
@@ -204,6 +214,13 @@ const styles = StyleSheet.create({
   },
   navItem: {
     alignItems: 'center',
+  },
+  navIcon: {
+    fontSize: 22,
+    marginBottom: 4,
+  },
+  navIconActive: {
+    color: '#1B5E20',
   },
   navText: {
     fontSize: 12,
