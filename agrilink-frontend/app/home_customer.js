@@ -31,7 +31,7 @@ export default function CustomerHome() {
         <Text style={styles.searchIcon}>🔍</Text>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search products..."
+          placeholder="Search products"
           placeholderTextColor="#999"
         />
       </View>
@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   headerTitle: {
     fontSize: 20,
     fontWeight: 'bold',
-    color: '#1B5E20',
+    color: '#133332',
   },
   cartIcon: {
     fontSize: 24,
