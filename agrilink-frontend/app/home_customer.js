@@ -10,12 +10,12 @@ export default function CustomerHome() {
   ];
 
   const products = [
-    { id: 1, name: 'Organic Vine Ripe Tomatoes', price: '$3.99', image: 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?w=400' },
-    { id: 2, name: 'Crisp Green Leaf Lettuce', price: '$2.49', image: 'https://images.unsplash.com/photo-1560807707-8cc77767d783?w=400' },
-    { id: 3, name: 'Farm Fresh Sweet Potatoes', price: '$1.89', image: 'https://images.unsplash.com/photo-1605478521005-d51e56f3d1a3?w=400' },
-    { id: 4, name: 'Hass Avocados (Pack of 3)', price: '$5.29', image: 'https://images.unsplash.com/photo-1609692814858-fd5d91c71d44?w=400' },
-    { id: 5, name: 'Assorted Bell Peppers', price: '$4.50', image: 'https://images.unsplash.com/photo-1582515073490-dc84e7ba1e79?w=400' },
-    { id: 6, name: 'Sweet Orchard Strawberries', price: '$6.99', image: 'https://images.unsplash.com/photo-1560807707-8cc77767d783?w=400' },
+    { id: 1, name: 'Organic Vine Ripe Tomatoes', price: 'Rs3.99', image: 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?w=400' },
+    { id: 2, name: 'Crisp Green Leaf Lettuce', price: 'Rs2.49', image: 'https://images.unsplash.com/photo-1560807707-8cc77767d783?w=400' },
+    { id: 3, name: 'Farm Fresh Sweet Potatoes', price: 'Rs1.89', image: 'https://images.unsplash.com/photo-1605478521005-d51e56f3d1a3?w=400' },
+    { id: 4, name: 'Hass Avocados (Pack of 3)', price: 'Rs5.29', image: 'https://images.unsplash.com/photo-1609692814858-fd5d91c71d44?w=400' },
+    { id: 5, name: 'Assorted Bell Peppers', price: 'Rs4.50', image: 'https://images.unsplash.com/photo-1582515073490-dc84e7ba1e79?w=400' },
+    { id: 6, name: 'Sweet Orchard Strawberries', price: 'Rs6.99', image: 'https://images.unsplash.com/photo-1560807707-8cc77767d783?w=400' },
   ];
 
   return (
