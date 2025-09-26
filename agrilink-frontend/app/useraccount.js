@@ -1,8 +1,8 @@
 // app/useraccount.js
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { router } from 'expo-router';
-import { useEffect, useState } from 'react';
+import { router, useFocusEffect } from 'expo-router';
+import { useCallback, useEffect, useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
 // import * as ImagePicker from 'expo-image-picker';
 
@@ -17,14 +17,25 @@ export default function UserAccountPage() {
   });
   
   const [isEditing, setIsEditing] = useState(false);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [profileImage, setProfileImage] = useState('https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80');
   const [showPassword, setShowPassword] = useState(false);
-  const [tempPassword, setTempPassword] = useState('');
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadUserData();
+    refreshCurrentPassword(); // Load current password on component mount
   }, []);
+
+  // Refresh password when page is focused (e.g., after password reset)
+  useFocusEffect(
+    useCallback(() => {
+      refreshCurrentPassword();
+    }, [])
+  );
 
   const loadUserData = async () => {
     try {
@@ -57,15 +68,161 @@ export default function UserAccountPage() {
 
   const toggleEdit = () => {
     if (isEditing) {
-      // Save changes logic would go here
-      Alert.alert('Success', 'Profile updated successfully');
+      saveProfileChanges();
+    } else {
+      setIsEditing(true);
+      // Clear password fields when entering edit mode
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setIsChangingPassword(false);
     }
-    setIsEditing(!isEditing);
   };
 
-  const changePassword = () => {
-    Alert.alert('Change Password', 'Password change functionality would be implemented here');
+  const togglePasswordChange = async () => {
+    setIsChangingPassword(!isChangingPassword);
+    if (!isChangingPassword) {
+      // Load current password when starting password change
+      await refreshCurrentPassword();
+      // Clear new password fields for user input
+      setNewPassword('');
+      setConfirmPassword('');
+      // Force clear any browser autofill
+      setTimeout(() => {
+        setNewPassword('');
+        setConfirmPassword('');
+      }, 100);
+    }
   };
+
+  const refreshCurrentPassword = async () => {
+    try {
+      const storedPassword = await AsyncStorage.getItem('userPassword');
+      if (storedPassword) {
+        // Show the actual password text (read-only)
+        setCurrentPassword(storedPassword);
+      } else {
+        // If no password stored, show message
+        setCurrentPassword('Password not found - please re-login');
+      }
+    } catch (error) {
+      console.error('Error loading current password:', error);
+      setCurrentPassword('Password not found - please re-login');
+    }
+  };
+
+  const saveProfileChanges = async () => {
+    try {
+      const token = await AsyncStorage.getItem('authToken');
+      console.log('Token retrieved:', token ? 'Token exists' : 'No token found');
+      
+      if (!token) {
+        Alert.alert('Error', 'Please login again');
+        router.replace('/login');
+        return;
+      }
+
+      // First update profile
+      console.log('Sending profile update request...');
+      const response = await fetch('http://localhost:5000/api/v1/auth/update-profile', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          fullName: userData.fullName,
+          phoneNumber: userData.phoneNumber,
+          email: userData.email,
+          location: userData.location
+        }),
+      });
+
+      console.log('Profile update response status:', response.status);
+      const data = await response.json();
+      console.log('Profile update response data:', data);
+      
+      if (!response.ok) {
+        Alert.alert('Error', data.message || 'Failed to update profile');
+        return;
+      }
+
+      // Update stored user data with fresh data from MongoDB
+      await AsyncStorage.setItem('userData', JSON.stringify(data.data.user));
+
+      // If password change is requested, handle it
+      if (isChangingPassword && newPassword && confirmPassword) {
+        if (newPassword !== confirmPassword) {
+          Alert.alert('Error', 'New passwords do not match');
+          return;
+        }
+
+        if (newPassword.length < 6) {
+          Alert.alert('Error', 'New password must be at least 6 characters');
+          return;
+        }
+
+        // Get the actual current password from stored data
+        const actualCurrentPassword = await AsyncStorage.getItem('userPassword');
+        if (!actualCurrentPassword) {
+          Alert.alert('Error', 'Password not found. Please re-login to change password.');
+          return;
+        }
+
+        const passwordResponse = await fetch('http://localhost:5000/api/v1/auth/change-password', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            currentPassword: actualCurrentPassword,
+            newPassword
+          }),
+        });
+
+        const passwordData = await passwordResponse.json();
+        
+        if (passwordResponse.ok) {
+          // Update stored user data and password
+          await AsyncStorage.setItem('userData', JSON.stringify(data.data.user));
+          await AsyncStorage.setItem('userPassword', newPassword); // Store new password
+          
+          // Reload user data to show updated information
+          await loadUserData();
+          
+          // Refresh the current password field to show the new password
+          setCurrentPassword(newPassword);
+          
+          Alert.alert('Success', 'Profile and password updated successfully');
+          setIsEditing(false);
+          setIsChangingPassword(false);
+          setNewPassword('');
+          setConfirmPassword('');
+          return;
+        } else {
+          Alert.alert('Error', passwordData.message || 'Failed to change password');
+          return;
+        }
+      }
+
+      // Profile updated successfully (no password change)
+      // Reload user data to show updated information
+      await loadUserData();
+      
+      Alert.alert('Success', 'Profile updated successfully');
+      setIsEditing(false);
+      setIsChangingPassword(false);
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      
+    } catch (error) {
+      console.error('Update profile error:', error);
+      Alert.alert('Error', 'Network error. Please try again.');
+    }
+  };
+
 
   const pickImage = async () => {
     // Request permissions
@@ -214,24 +371,50 @@ export default function UserAccountPage() {
           />
         </View>
 
-        {isEditing && (
+        {isEditing && isChangingPassword && (
+          <View style={styles.passwordSection}>
+            <View style={styles.inputContainer}>
+              <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+              <TextInput
+                style={[styles.input, styles.currentPasswordInput]}
+                placeholder="Current Password"
+                placeholderTextColor="#999"
+                secureTextEntry={false}
+                value={currentPassword}
+                onChangeText={setCurrentPassword}
+                editable={false}
+              />
+            </View>
+
           <View style={styles.inputContainer}>
             <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
             <TextInput
               style={styles.input}
-              placeholder="Password (leave blank to keep current)"
+                placeholder="New Password"
               placeholderTextColor="#999"
               secureTextEntry={!showPassword}
-              value={tempPassword}
-              onChangeText={setTempPassword}
-            />
-            <TouchableOpacity onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon}>
-              <Ionicons 
-                name={showPassword ? "eye-outline" : "eye-off-outline"} 
-                size={20} 
-                color="#666" 
+                value={newPassword}
+                onChangeText={setNewPassword}
+                autoComplete="new-password"
+                autoCorrect={false}
+                autoCapitalize="none"
               />
-            </TouchableOpacity>
+            </View>
+
+            <View style={styles.inputContainer}>
+              <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
+              <TextInput
+                style={styles.input}
+                placeholder="Confirm New Password"
+                placeholderTextColor="#999"
+                secureTextEntry={!showPassword}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                autoComplete="new-password"
+                autoCorrect={false}
+                autoCapitalize="none"
+              />
+            </View>
           </View>
         )}
       </View>
@@ -252,20 +435,38 @@ export default function UserAccountPage() {
           </Text>
         </TouchableOpacity>
 
-        {!isEditing && (
+         {isEditing && !isChangingPassword && (
           <TouchableOpacity 
             style={[styles.button, styles.passwordButton]}
-            onPress={changePassword}
+             onPress={togglePasswordChange}
           >
             <Ionicons name="key-outline" size={20} color="white" style={styles.buttonIcon} />
             <Text style={styles.buttonText}>Change Password</Text>
           </TouchableOpacity>
         )}
 
+         {isEditing && isChangingPassword && (
+           <TouchableOpacity 
+             style={[styles.button, styles.cancelPasswordButton]}
+             onPress={togglePasswordChange}
+           >
+             <Ionicons name="close-circle" size={20} color="white" style={styles.buttonIcon} />
+             <Text style={styles.buttonText}>Cancel Password Change</Text>
+           </TouchableOpacity>
+         )}
+
         {isEditing && (
           <TouchableOpacity 
             style={[styles.button, styles.cancelButton]}
-            onPress={() => setIsEditing(false)}
+            onPress={() => {
+              // Reset to original data and exit edit mode
+              loadUserData();
+              setIsEditing(false);
+              setIsChangingPassword(false);
+              setCurrentPassword('');
+              setNewPassword('');
+              setConfirmPassword('');
+            }}
           >
             <Ionicons name="close-circle" size={20} color="white" style={styles.buttonIcon} />
             <Text style={styles.buttonText}>Cancel</Text>
@@ -274,32 +475,6 @@ export default function UserAccountPage() {
       </View>
 
       <View style={styles.menuSection}>
-        <Text style={styles.sectionTitle}>Account</Text>
-        
-        <TouchableOpacity style={styles.menuItem}>
-          <Ionicons name="card-outline" size={22} color="#1B5E20" />
-          <Text style={styles.menuText}>Payment Methods</Text>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.menuItem}>
-          <Ionicons name="document-text-outline" size={22} color="#1B5E20" />
-          <Text style={styles.menuText}>Order History</Text>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.menuItem}>
-          <Ionicons name="notifications-outline" size={22} color="#1B5E20" />
-          <Text style={styles.menuText}>Notifications</Text>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
-        </TouchableOpacity>
-        
-        <TouchableOpacity style={styles.menuItem}>
-          <Ionicons name="shield-checkmark-outline" size={22} color="#1B5E20" />
-          <Text style={styles.menuText}>Privacy & Security</Text>
-          <Ionicons name="chevron-forward" size={20} color="#999" />
-        </TouchableOpacity>
-        
         <TouchableOpacity style={styles.menuItem} onPress={() => router.replace('/login')}>
           <Ionicons name="log-out-outline" size={22} color="#E53935" />
           <Text style={[styles.menuText, styles.logoutText]}>Logout</Text>
@@ -421,6 +596,20 @@ const styles = StyleSheet.create({
   },
   passwordButton: {
     backgroundColor: '#FF9800',
+  },
+  cancelPasswordButton: {
+    backgroundColor: '#E53935',
+  },
+  passwordSection: {
+    marginTop: 20,
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
+  },
+  currentPasswordInput: {
+    backgroundColor: '#f8f9fa',
+    color: '#333',
+    fontWeight: '500',
   },
   buttonIcon: {
     marginRight: 10,

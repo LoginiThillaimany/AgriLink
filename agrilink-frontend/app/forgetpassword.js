@@ -1,40 +1,111 @@
 // app/forgot-password.js
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert, ScrollView } from 'react-native';
-import { router } from 'expo-router';
-import { useState, useRef } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { userEmailService } from '../services/userEmailService';
 
 export default function ForgotPasswordPage() {
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
+  const [email, setEmail] = useState('');
+  const [otp, setOtp] = useState(['', '', '', '', '', '']); // User input fields
+  const [storedOtp, setStoredOtp] = useState(''); // Store OTP for verification
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [step, setStep] = useState(1); // 1: Enter phone, 2: Enter OTP, 3: New password
+  const [step, setStep] = useState(1); // 1: Enter email, 2: Enter OTP, 3: New password
   const [isLoading, setIsLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const otpInputs = useRef([]);
 
-  const handleSendOTP = () => {
-    if (!phoneNumber) {
-      Alert.alert('Error', 'Please enter your phone number');
+  // Reset form state
+  const resetForm = () => {
+    setEmail('');
+    setOtp(['', '', '', '', '', '']);
+    setStoredOtp('');
+    setNewPassword('');
+    setConfirmPassword('');
+    setStep(1);
+  };
+
+  // Ensure password fields are empty when component loads
+  useEffect(() => {
+    setNewPassword('');
+    setConfirmPassword('');
+  }, []);
+
+  // Clear password fields when entering step 3
+  useEffect(() => {
+    if (step === 3) {
+      setNewPassword('');
+      setConfirmPassword('');
+      // Force clear any browser autofill
+      setTimeout(() => {
+        setNewPassword('');
+        setConfirmPassword('');
+      }, 100);
+    }
+  }, [step]);
+
+  const handleSendOTP = async () => {
+    if (!email) {
+      Alert.alert('Error', 'Please enter your email address');
       return;
     }
     
-    // Basic phone validation (adjust based on your requirements)
-    if (phoneNumber.replace(/\D/g, '').length < 10) {
-      Alert.alert('Error', 'Please enter a valid phone number');
+    // Basic email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      Alert.alert('Error', 'Please enter a valid email address');
       return;
     }
     
-    setIsLoading(true);
-    // Simulate sending OTP
-    setTimeout(() => {
+    try {
+      setIsLoading(true);
+      
+      // Call backend API to generate and store OTP in MongoDB
+      const response = await fetch('http://localhost:5000/api/v1/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Check if user has email template for EmailJS
+        const userTemplate = userEmailService.getUserTemplate(email);
+        
+        if (!userTemplate) {
+          Alert.alert('Error', 'No account found with this email address. Please signup first.');
+          return;
+        }
+        
+        // Send OTP via EmailJS using the OTP from backend
+        await userEmailService.sendOTPToUser(email, data.otp);
+        
+        // Store OTP for verification (but don't auto-fill input fields)
+        setStoredOtp(data.otp);
+        setStep(2);
+        
+        Alert.alert(
+          'OTP Sent',
+          `OTP has been sent to ${email}. Please check your email and enter the code manually.`,
+          [{ text: 'OK', onPress: () => {} }]
+        );
+      } else {
+        Alert.alert('Error', data.message || 'Failed to send OTP');
+      }
+      
+    } catch (error) {
+      console.error('API Error:', error);
+      Alert.alert('Error', 'Network error. Please try again.');
+    } finally {
       setIsLoading(false);
-      setStep(2);
-      Alert.alert('OTP Sent', 'We have sent a 6-digit code to your phone');
-    }, 1500);
+    }
   };
 
   const handleOtpChange = (value, index) => {
@@ -63,15 +134,25 @@ export default function ForgotPasswordPage() {
       return;
     }
     
-    setIsLoading(true);
-    // Simulate OTP verification
-    setTimeout(() => {
-      setIsLoading(false);
-      setStep(3);
-    }, 1500);
+    // Verify OTP against stored OTP
+    if (enteredOtp === storedOtp) {
+      setIsLoading(true);
+      // Clear password fields for new password entry
+      setNewPassword('');
+      setConfirmPassword('');
+      // Clear any autofill values
+      setTimeout(() => {
+        setNewPassword('');
+        setConfirmPassword('');
+        setIsLoading(false);
+        setStep(3);
+      }, 1500);
+    } else {
+      Alert.alert('Error', 'Invalid OTP. Please check the code and try again.');
+    }
   };
 
-  const handleResetPassword = () => {
+  const handleResetPassword = async () => {
     if (!newPassword || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all password fields');
       return;
@@ -87,49 +168,106 @@ export default function ForgotPasswordPage() {
       return;
     }
     
-    setIsLoading(true);
-    // Simulate password reset
-    setTimeout(() => {
+    try {
+      setIsLoading(true);
+      
+      // Call backend API to reset password
+      const response = await fetch('http://localhost:5000/api/v1/auth/reset-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          email: email, // Use email instead of phoneNumber
+          otp: storedOtp, // Use stored OTP for verification
+          newPassword: newPassword
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Update AsyncStorage with new password
+        await AsyncStorage.setItem('userPassword', newPassword);
+        
+        Alert.alert('Success', 'Your password has been reset successfully');
+        // Clear form and redirect to login
+        resetForm();
+        router.replace('/login');
+      } else {
+        Alert.alert('Error', data.message || 'Failed to reset password');
+      }
+    } catch (error) {
+      console.error('Password reset error:', error);
+      Alert.alert('Error', 'Network error. Please try again.');
+    } finally {
       setIsLoading(false);
-      Alert.alert('Success', 'Your password has been reset successfully');
-      router.replace('/login');
-    }, 1500);
+    }
   };
 
-  const resendOTP = () => {
-    setIsLoading(true);
-    // Simulate resending OTP
-    setTimeout(() => {
+  const resendOTP = async () => {
+    try {
+      setIsLoading(true);
+      
+      // Call backend API to generate new OTP
+      const response = await fetch('http://localhost:5000/api/v1/auth/forgot-password', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        // Send OTP via EmailJS using the OTP from backend
+        await userEmailService.sendOTPToUser(email, data.otp);
+        
+        // Store new OTP for verification (but don't auto-fill input fields)
+        setStoredOtp(data.otp);
+        
+        Alert.alert('Code Sent', `A new verification code has been sent to ${email}. Please check your email and enter the code manually.`);
+      } else {
+        Alert.alert('Error', data.message || 'Failed to resend OTP');
+      }
+      
+    } catch (error) {
+      console.error('API Error:', error);
+      Alert.alert('Error', 'Failed to resend OTP. Please try again.');
+    } finally {
       setIsLoading(false);
-      Alert.alert('Code Sent', 'A new verification code has been sent to your phone');
-    }, 1000);
+    }
   };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-        <Image 
-          source={{ uri: 'https://images.unsplash.com/photo-1535016120720-40c646be5580?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' }}
-          style={styles.logo}
-        />
+      <View style={styles.logoContainer}>
+              <Image 
+                source={require('../assets/Logo.png')}
+                style={styles.logoImage}
+                resizeMode="contain"
+              />
+            </View>
         
         <Text style={styles.title}>Reset Password</Text>
         
         {step === 1 && (
           <>
             <Text style={styles.subtitle}>
-              Enter your phone number and we'll send you a code to reset your password
+              Enter your email address and we'll send you a code to reset your password
             </Text>
             
             <View style={styles.inputContainer}>
-              <Ionicons name="call-outline" size={20} color="#666" style={styles.inputIcon} />
+              <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
               <TextInput
                 style={styles.input}
-                placeholder="Phone Number"
+                placeholder="Email Address"
                 placeholderTextColor="#999"
-                keyboardType="phone-pad"
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
+                keyboardType="email-address"
+                value={email}
+                onChangeText={setEmail}
                 autoCapitalize="none"
               />
             </View>
@@ -151,7 +289,7 @@ export default function ForgotPasswordPage() {
         {step === 2 && (
           <>
             <Text style={styles.subtitle}>
-              Enter the 6-digit code sent to {phoneNumber}
+              Enter the 6-digit code sent to {email}
             </Text>
             
             <View style={styles.otpContainer}>
@@ -207,6 +345,9 @@ export default function ForgotPasswordPage() {
                 secureTextEntry={!showNewPassword}
                 value={newPassword}
                 onChangeText={setNewPassword}
+                autoComplete="new-password"
+                autoCorrect={false}
+                autoCapitalize="none"
               />
               <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)} style={styles.eyeIcon}>
                 <Ionicons 
@@ -226,6 +367,9 @@ export default function ForgotPasswordPage() {
                 secureTextEntry={!showConfirmPassword}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
+                autoComplete="new-password"
+                autoCorrect={false}
+                autoCapitalize="none"
               />
               <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeIcon}>
                 <Ionicons 
@@ -252,7 +396,16 @@ export default function ForgotPasswordPage() {
         
         <TouchableOpacity 
           style={styles.secondaryButton} 
-          onPress={() => step > 1 ? setStep(step - 1) : router.back()}
+          onPress={() => {
+            if (step > 1) {
+              // Clear password fields when going back
+              setNewPassword('');
+              setConfirmPassword('');
+              setStep(step - 1);
+            } else {
+              router.push('/login');
+            }
+          }}
         >
           <Ionicons name="arrow-back" size={16} color="#1B5E20" />
           <Text style={styles.secondaryButtonText}>Back</Text>
@@ -263,6 +416,15 @@ export default function ForgotPasswordPage() {
 }
 
 const styles = StyleSheet.create({
+
+   logoContainer: {
+    alignItems: 'center', // This centers the logo horizontally
+    marginBottom: 30,
+  },
+  logoImage: {
+    width: 500,
+    height: 150,
+  },
   scrollContainer: {
     flexGrow: 1,
   },

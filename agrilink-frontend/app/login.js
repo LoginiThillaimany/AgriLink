@@ -24,8 +24,11 @@ const handleLogin = async () => {
     const data = await response.json();
 
     if (response.ok) {
-      // Save the token (you might want to use AsyncStorage or context)
+      // Save the token and user data
       console.log('Login successful', data);
+      await AsyncStorage.setItem('userData', JSON.stringify(data.data.user));
+      await AsyncStorage.setItem('authToken', data.token);
+      await AsyncStorage.setItem('userPassword', password); // Store the password
       // After successful login, navigate to home
       router.replace('/');
     } else {
@@ -65,7 +68,7 @@ export default function LoginPage() {
         // Store user data for profile page
         await AsyncStorage.setItem('userData', JSON.stringify(data.data.user));
         await AsyncStorage.setItem('authToken', data.token);
-        router.replace('/home');
+        router.replace('/useraccount');
       } else {
         Alert.alert('Login failed', data.message || 'Please try again');
       }

@@ -38,6 +38,21 @@ const userSchema = new mongoose.Schema({
     enum: ['farmer', 'consumer'],
     default: 'farmer'
   },
+  location: {
+    type: String,
+    default: 'Not specified'
+  },
+  passwordChangedAt: {
+    type: Date
+  },
+  resetPasswordOTP: {
+    type: String,
+    select: false
+  },
+  resetPasswordExpires: {
+    type: Date,
+    select: false
+  },
   createdAt: {
     type: Date,
     default: Date.now
@@ -54,6 +69,15 @@ userSchema.pre('save', async function(next) {
 // Compare password method
 userSchema.methods.correctPassword = async function(candidatePassword, userPassword) {
   return await bcrypt.compare(candidatePassword, userPassword);
+};
+
+// Check if password was changed after JWT was issued
+userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
+  if (this.passwordChangedAt) {
+    const changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+    return JWTTimestamp < changedTimestamp;
+  }
+  return false;
 };
 
 module.exports = mongoose.model('User', userSchema);

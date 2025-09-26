@@ -4,49 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { userEmailService } from '../services/userEmailService';
 
-// Update the handleSignup function
-const handleSignup = async () => {
-  // Basic validation
-  if (password !== confirmPassword) {
-    Alert.alert('Error', 'Passwords do not match');
-    return;
-  }
-  
-  setIsLoading(true);
-  
-  try {
-    const response = await fetch('http://your-server-ip:5000/api/v1/auth/signup', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        fullName,
-        phoneNumber,
-        email,
-        password,
-        userType,
-      }),
-    });
-
-    const data = await response.json();
-
-    if (response.ok) {
-      // Save the token (you might want to use AsyncStorage or context)
-      console.log('Signup successful', data);
-      // After successful signup, navigate to home
-      router.replace('/');
-    } else {
-      Alert.alert('Error', data.message || 'Signup failed');
-    }
-  } catch (error) {
-    Alert.alert('Error', 'Network error. Please try again.');
-    console.error('Signup error:', error);
-  } finally {
-    setIsLoading(false);
-  }
-};
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState('');
@@ -78,10 +37,24 @@ export default function SignupPage() {
       const data = await response.json();
       if (response.ok) {
         console.log('Signup successful', data);
+        
+        // Create email template for the new user
+        try {
+          await userEmailService.createUserTemplate({
+            email: email,
+            fullName: fullName
+          });
+          console.log(`✅ Email template created for ${email}`);
+        } catch (emailError) {
+          console.warn('Email template creation failed:', emailError);
+          // Don't fail signup if email template creation fails
+        }
+        
         // Store user data for profile page
         await AsyncStorage.setItem('userData', JSON.stringify(data.data.user));
         await AsyncStorage.setItem('authToken', data.token);
-        router.replace('/home');
+        await AsyncStorage.setItem('userPassword', password); // Store the password
+        router.replace('/login');
       } else {
         Alert.alert('Signup failed', data.message || 'Please try again');
       }
