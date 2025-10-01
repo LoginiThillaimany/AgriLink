@@ -5,8 +5,8 @@ import { router } from 'expo-router';
 export default function LogoPage() {
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.push('/onboarding');
-    }, 5000); // 5 seconds
+      router.replace('/login');
+    }, 1000); // brief splash, then go to login
 
     return () => clearTimeout(timer);
   }, []);

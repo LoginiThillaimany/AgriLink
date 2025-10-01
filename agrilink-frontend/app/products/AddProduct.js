@@ -8,282 +8,497 @@ import {
   StyleSheet,
   Alert,
   Image,
+  Platform,
+  KeyboardAvoidingView,
 } from "react-native";
-import axios from "axios";
-import { PRODUCTS_URL } from "../../lib/api";
+import { Ionicons } from "@expo/vector-icons";
+import * as ImagePicker from 'expo-image-picker';
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { useRouter } from "expo-router";
-import { Platform } from "react-native";
-import * as ImagePicker from 'expo-image-picker';
-import { toastError, toastSuccess, toastWrap } from "../../lib/toast";
+import { productAPI } from "../../lib/api";
+import { toastError, toastSuccess } from "../../lib/toast";
+import { colors, spacing, radius, shadows } from "../../lib/theme";
+import LoadingSpinner from "../../components/LoadingSpinner";
 
+const CATEGORIES = ['Vegetables', 'Fruits', 'Grains', 'Others'];
+const DELIVERY_OPTIONS = ['Farm pickup', 'Local delivery', "Farmer's market"];
 
 export default function AddProduct() {
   const router = useRouter();
-  // Form states
-  const [name, setName] = useState("");
-  const [category, setCategory] = useState("");
-  const [variety, setVariety] = useState("");
-  const [description, setDescription] = useState("");
-  const [price, setPrice] = useState("");
-  const [unit, setUnit] = useState("");
-  const [quantity, setQuantity] = useState("");
-  const [minOrder, setMinOrder] = useState("");
-  const [harvestDate, setHarvestDate] = useState(new Date());
-  const [bestByDate, setBestByDate] = useState(new Date());
-  const [deliveryOptions, setDeliveryOptions] = useState([]);
-  const [image, setImage] = useState(null);
+  
+  const [formData, setFormData] = useState({
+    name: "",
+    category: "Vegetables",
+    variety: "",
+    description: "",
+    price: "",
+    unit: "",
+    quantity: "",
+    minOrder: "1",
+    harvestDate: new Date(),
+    bestByDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+    deliveryOptions: [],
+    image: null,
+  });
 
   const [showHarvestPicker, setShowHarvestPicker] = useState(false);
   const [showBestByPicker, setShowBestByPicker] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
 
-  // Toggle delivery options
+  const updateForm = (key, value) => {
+    setFormData(prev => ({ ...prev, [key]: value }));
+    if (errors[key]) {
+      setErrors(prev => ({ ...prev, [key]: null }));
+    }
+  };
+
   const toggleDeliveryOption = (option) => {
-    setDeliveryOptions((prev) =>
-      prev.includes(option)
-        ? prev.filter((o) => o !== option)
-        : [...prev, option]
-    );
+    setFormData(prev => ({
+      ...prev,
+      deliveryOptions: prev.deliveryOptions.includes(option)
+        ? prev.deliveryOptions.filter(o => o !== option)
+        : [...prev.deliveryOptions, option]
+    }));
   };
 
-  // Pick image
   const pickImage = async () => {
-    const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (permissionResult.granted === false) {
-      Alert.alert("Permission to access camera roll is required!");
-      return;
-    }
+    try {
+      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      
+      if (!permissionResult.granted) {
+        Alert.alert("Permission Required", "Please grant permission to access your photos");
+        return;
+      }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-      base64: true,
-    });
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: [ImagePicker.MediaType.Images],
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 0.8,
+        base64: true,
+      });
 
-    if (!result.canceled) {
-      setImage(`data:image/jpeg;base64,${result.assets[0].base64}`);
+      if (!result.canceled) {
+        const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
+        updateForm('image', base64Image);
+      }
+    } catch (error) {
+      toastError("Failed to pick image");
     }
   };
 
-  // Handle form submit
-  const handleAddProduct = async () => {
-    if (!name || !category || !price || !unit || !quantity) {
-      Alert.alert("Validation Error", "Please fill all required fields");
+  const validateForm = () => {
+    const newErrors = {};
+
+    if (!formData.name.trim()) newErrors.name = "Product name is required";
+    if (!formData.category) newErrors.category = "Category is required";
+    if (!formData.price || parseFloat(formData.price) <= 0) newErrors.price = "Valid price is required";
+    if (!formData.unit.trim()) newErrors.unit = "Unit is required";
+    if (!formData.quantity || parseInt(formData.quantity) < 0) newErrors.quantity = "Valid quantity is required";
+    if (formData.bestByDate < formData.harvestDate) {
+      newErrors.bestByDate = "Best by date must be after harvest date";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async () => {
+    if (!validateForm()) {
+      toastError("Please fix the errors in the form");
       return;
     }
 
-    const newProduct = {
-      name,
-      category,
-      variety,
-      description,
-      price: Number(price),
-      unit,
-      quantity: Number(quantity),
-      minOrder: minOrder ? Number(minOrder) : 1,
-      harvestDate,
-      bestByDate,
-      deliveryOptions,
-      image,
-    };
-
+    setLoading(true);
     try {
-      await toastWrap(
-        axios.post(PRODUCTS_URL, newProduct),
-        { loading: "Adding product...", success: "Product added", error: "Failed to add" }
-      );
-      toastSuccess("Product added successfully");
+      const productData = {
+        ...formData,
+        price: parseFloat(formData.price),
+        quantity: parseInt(formData.quantity),
+        minOrder: parseInt(formData.minOrder) || 1,
+        harvestDate: formData.harvestDate.toISOString(),
+        bestByDate: formData.bestByDate.toISOString(),
+      };
+
+      await productAPI.create(productData);
+      toastSuccess("Product added successfully!");
       router.back();
     } catch (error) {
-      console.error("Error adding product:", error.response?.data || error.message);
-      toastError(error.response?.data?.message || "Error adding product");
+      toastError(error.message || "Failed to add product");
+    } finally {
+      setLoading(false);
     }
   };
 
+  if (loading) {
+    return <LoadingSpinner message="Adding product..." />;
+  }
+
   return (
-    <ScrollView style={styles.container}>
-      <Text style={styles.title}>Add New Product</Text>
+    <KeyboardAvoidingView 
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
+    >
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Basic Information</Text>
+          
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Product Name *</Text>
+            <TextInput
+              placeholder="e.g., Organic Roma Tomatoes"
+              value={formData.name}
+              onChangeText={(text) => updateForm('name', text)}
+              style={[styles.input, errors.name && styles.inputError]}
+            />
+            {errors.name && <Text style={styles.errorText}>{errors.name}</Text>}
+          </View>
 
-      {/* Product Name */}
-      <TextInput
-        placeholder="Product Name (e.g., Organic Roma Tomatoes)"
-        value={name}
-        onChangeText={setName}
-        style={styles.input}
-      />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Category *</Text>
+            <View style={styles.categoryContainer}>
+              {CATEGORIES.map((cat) => (
+                <TouchableOpacity
+                  key={cat}
+                  style={[
+                    styles.categoryChip,
+                    formData.category === cat && styles.categoryChipActive
+                  ]}
+                  onPress={() => updateForm('category', cat)}
+                >
+                  <Text style={[
+                    styles.categoryChipText,
+                    formData.category === cat && styles.categoryChipTextActive
+                  ]}>
+                    {cat}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
 
-      {/* Category */}
-      <TextInput
-        placeholder="Category (Vegetables, Fruits, Grains, Others)"
-        value={category}
-        onChangeText={setCategory}
-        style={styles.input}
-      />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Variety (Optional)</Text>
+            <TextInput
+              placeholder="e.g., Cherry, Heirloom"
+              value={formData.variety}
+              onChangeText={(text) => updateForm('variety', text)}
+              style={styles.input}
+            />
+          </View>
 
-      {/* Variety */}
-      <TextInput
-        placeholder="Variety (Optional)"
-        value={variety}
-        onChangeText={setVariety}
-        style={styles.input}
-      />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Description</Text>
+            <TextInput
+              placeholder="Brief description of your product..."
+              value={formData.description}
+              onChangeText={(text) => updateForm('description', text)}
+              style={[styles.input, styles.textArea]}
+              multiline
+              numberOfLines={4}
+            />
+          </View>
 
-      {/* Description */}
-      <TextInput
-        placeholder="Description"
-        value={description}
-        onChangeText={setDescription}
-        style={[styles.input, { height: 80 }]}
-        multiline
-      />
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Product Image</Text>
+            <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
+              <Ionicons name="camera" size={24} color="white" />
+              <Text style={styles.imageButtonText}>
+                {formData.image ? "Change Image" : "Upload Image"}
+              </Text>
+            </TouchableOpacity>
+            {formData.image && (
+              <Image source={{ uri: formData.image }} style={styles.imagePreview} />
+            )}
+          </View>
+        </View>
 
-      {/* Image Upload */}
-      <TouchableOpacity style={styles.imageButton} onPress={pickImage}>
-        <Text style={styles.imageButtonText}>
-          {image ? "Change Image" : "Upload Image"}
-        </Text>
-      </TouchableOpacity>
-      {image && <Image source={{ uri: image }} style={styles.imagePreview} />}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Pricing & Stock</Text>
 
-      {/* Price & Unit */}
-      <View style={styles.row}>
-        <TextInput
-          placeholder="Price"
-          value={price}
-          onChangeText={setPrice}
-          keyboardType="numeric"
-          style={[styles.input, { flex: 1, marginRight: 8 }]}
-        />
-        <TextInput
-          placeholder="Unit (e.g., kg, lb)"
-          value={unit}
-          onChangeText={setUnit}
-          style={[styles.input, { flex: 1 }]}
-        />
-      </View>
+          <View style={styles.row}>
+            <View style={[styles.inputGroup, { flex: 1, marginRight: spacing.sm }]}>
+              <Text style={styles.label}>Price *</Text>
+              <TextInput
+                placeholder="0.00"
+                value={formData.price}
+                onChangeText={(text) => updateForm('price', text)}
+                keyboardType="numeric"
+                style={[styles.input, errors.price && styles.inputError]}
+              />
+              {errors.price && <Text style={styles.errorText}>{errors.price}</Text>}
+            </View>
 
-      {/* Quantity & Min Order */}
-      <View style={styles.row}>
-        <TextInput
-          placeholder="Available Quantity"
-          value={quantity}
-          onChangeText={setQuantity}
-          keyboardType="numeric"
-          style={[styles.input, { flex: 1, marginRight: 8 }]}
-        />
-        <TextInput
-          placeholder="Min Order (Optional)"
-          value={minOrder}
-          onChangeText={setMinOrder}
-          keyboardType="numeric"
-          style={[styles.input, { flex: 1 }]}
-        />
-      </View>
+            <View style={[styles.inputGroup, { flex: 1 }]}>
+              <Text style={styles.label}>Unit *</Text>
+              <TextInput
+                placeholder="kg, lb, piece"
+                value={formData.unit}
+                onChangeText={(text) => updateForm('unit', text)}
+                style={[styles.input, errors.unit && styles.inputError]}
+              />
+              {errors.unit && <Text style={styles.errorText}>{errors.unit}</Text>}
+            </View>
+          </View>
 
-      {/* Harvest Date */}
-      <TouchableOpacity
-        onPress={() => setShowHarvestPicker(true)}
-        style={styles.dateButton}
-      >
-        <Text style={styles.dateText}>
-          Harvest Date: {harvestDate.toDateString()}
-        </Text>
-      </TouchableOpacity>
-      {showHarvestPicker && (
-        Platform.OS === "web" ? null : (
-          <DateTimePicker
-            value={harvestDate}
-            mode="date"
-            onChange={(e, date) => {
-              setShowHarvestPicker(false);
-              if (date) setHarvestDate(date);
-            }}
-          />
-        )
-      )}
+          <View style={styles.row}>
+            <View style={[styles.inputGroup, { flex: 1, marginRight: spacing.sm }]}>
+              <Text style={styles.label}>Available Quantity *</Text>
+              <TextInput
+                placeholder="0"
+                value={formData.quantity}
+                onChangeText={(text) => updateForm('quantity', text)}
+                keyboardType="numeric"
+                style={[styles.input, errors.quantity && styles.inputError]}
+              />
+              {errors.quantity && <Text style={styles.errorText}>{errors.quantity}</Text>}
+            </View>
 
-      {/* Best By Date */}
-      <TouchableOpacity
-        onPress={() => setShowBestByPicker(true)}
-        style={styles.dateButton}
-      >
-        <Text style={styles.dateText}>
-          Best By Date: {bestByDate.toDateString()}
-        </Text>
-      </TouchableOpacity>
-      {showBestByPicker && (
-        Platform.OS === "web" ? null : (
-          <DateTimePicker
-            value={bestByDate}
-            mode="date"
-            onChange={(e, date) => {
-              setShowBestByPicker(false);
-              if (date) setBestByDate(date);
-            }}
-          />
-        )
-      )}
+            <View style={styles.inputGroup}>
+              <Text style={styles.label}>Min Order</Text>
+              <TextInput
+                placeholder="1"
+                value={formData.minOrder}
+                onChangeText={(text) => updateForm('minOrder', text)}
+                keyboardType="numeric"
+                style={styles.input}
+              />
+            </View>
+          </View>
+        </View>
 
-      {/* Delivery Options */}
-      <Text style={styles.subtitle}>Delivery Options:</Text>
-      {["Farm pickup", "Local delivery", "Farmer’s market"].map((opt) => (
-        <TouchableOpacity
-          key={opt}
-          onPress={() => toggleDeliveryOption(opt)}
-          style={styles.checkbox}
-        >
-          <Text>
-            {deliveryOptions.includes(opt) ? "✅" : "⬜"} {opt}
-          </Text>
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Dates</Text>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Harvest Date</Text>
+            <TouchableOpacity
+              onPress={() => setShowHarvestPicker(true)}
+              style={styles.dateButton}
+            >
+              <Ionicons name="calendar" size={20} color={colors.primary} />
+              <Text style={styles.dateText}>
+                {formData.harvestDate.toLocaleDateString()}
+              </Text>
+            </TouchableOpacity>
+            {showHarvestPicker && Platform.OS !== 'web' && (
+              <DateTimePicker
+                value={formData.harvestDate}
+                mode="date"
+                onChange={(e, date) => {
+                  setShowHarvestPicker(false);
+                  if (date) updateForm('harvestDate', date);
+                }}
+              />
+            )}
+          </View>
+
+          <View style={styles.inputGroup}>
+            <Text style={styles.label}>Best By Date</Text>
+            <TouchableOpacity
+              onPress={() => setShowBestByPicker(true)}
+              style={styles.dateButton}
+            >
+              <Ionicons name="calendar" size={20} color={colors.primary} />
+              <Text style={styles.dateText}>
+                {formData.bestByDate.toLocaleDateString()}
+              </Text>
+            </TouchableOpacity>
+            {showBestByPicker && Platform.OS !== 'web' && (
+              <DateTimePicker
+                value={formData.bestByDate}
+                mode="date"
+                onChange={(e, date) => {
+                  setShowBestByPicker(false);
+                  if (date) updateForm('bestByDate', date);
+                }}
+              />
+            )}
+            {errors.bestByDate && <Text style={styles.errorText}>{errors.bestByDate}</Text>}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>Delivery Options</Text>
+          {DELIVERY_OPTIONS.map((option) => (
+            <TouchableOpacity
+              key={option}
+              onPress={() => toggleDeliveryOption(option)}
+              style={styles.checkboxRow}
+            >
+              <View style={[
+                styles.checkbox,
+                formData.deliveryOptions.includes(option) && styles.checkboxActive
+              ]}>
+                {formData.deliveryOptions.includes(option) && (
+                  <Ionicons name="checkmark" size={16} color="white" />
+                )}
+              </View>
+              <Text style={styles.checkboxLabel}>{option}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+          <Ionicons name="checkmark-circle" size={24} color="white" />
+          <Text style={styles.submitButtonText}>Add Product</Text>
         </TouchableOpacity>
-      ))}
 
-      {/* Submit */}
-      <TouchableOpacity style={styles.button} onPress={handleAddProduct}>
-        <Text style={styles.buttonText}>Add Product</Text>
-      </TouchableOpacity>
-    </ScrollView>
+        <View style={{ height: spacing.xl }} />
+      </ScrollView>
+    </KeyboardAvoidingView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20, backgroundColor: "#fff" },
-  title: { fontSize: 22, fontWeight: "bold", marginBottom: 20 },
-  subtitle: { fontSize: 16, fontWeight: "bold", marginTop: 20, marginBottom: 10 },
+  container: {
+    flex: 1,
+    backgroundColor: colors.surface,
+  },
+  section: {
+    backgroundColor: colors.card,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.md,
+    padding: spacing.lg,
+    borderRadius: radius.lg,
+    ...shadows.card,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.text,
+    marginBottom: spacing.md,
+  },
+  inputGroup: {
+    marginBottom: spacing.md,
+  },
+  label: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: colors.text,
+    marginBottom: spacing.sm,
+  },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    padding: 10,
-    marginBottom: 15,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    fontSize: 16,
+    backgroundColor: colors.surface,
   },
-  row: { flexDirection: "row" },
-  dateButton: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 15,
+  inputError: {
+    borderColor: colors.error,
   },
-  dateText: { color: "#333" },
-  checkbox: { marginBottom: 10 },
-  button: {
-    backgroundColor: "#2ecc71",
-    padding: 15,
-    borderRadius: 8,
-    alignItems: "center",
-    marginTop: 20,
+  errorText: {
+    color: colors.error,
+    fontSize: 12,
+    marginTop: spacing.xs,
   },
-  buttonText: { color: "#fff", fontWeight: "bold" },
+  textArea: {
+    height: 100,
+    textAlignVertical: 'top',
+  },
+  row: {
+    flexDirection: 'row',
+  },
+  categoryContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  categoryChip: {
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+    borderRadius: radius.md,
+    borderWidth: 2,
+    borderColor: colors.border,
+    backgroundColor: colors.surface,
+  },
+  categoryChipActive: {
+    borderColor: colors.primary,
+    backgroundColor: colors.primary,
+  },
+  categoryChipText: {
+    fontSize: 14,
+    color: colors.text,
+  },
+  categoryChipTextActive: {
+    color: 'white',
+    fontWeight: '600',
+  },
   imageButton: {
-    backgroundColor: "#3498db",
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-    marginBottom: 15,
+    flexDirection: 'row',
+    backgroundColor: colors.primary,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
   },
-  imageButtonText: { color: "#fff", fontWeight: "bold" },
-  imagePreview: { width: 100, height: 100, borderRadius: 8, marginBottom: 15 },
+  imageButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  imagePreview: {
+    width: '100%',
+    height: 200,
+    borderRadius: radius.md,
+    marginTop: spacing.md,
+  },
+  dateButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    padding: spacing.md,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    gap: spacing.sm,
+  },
+  dateText: {
+    fontSize: 16,
+    color: colors.text,
+  },
+  checkboxRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: spacing.md,
+  },
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderRadius: radius.sm,
+    borderWidth: 2,
+    borderColor: colors.border,
+    marginRight: spacing.sm,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  checkboxActive: {
+    backgroundColor: colors.primary,
+    borderColor: colors.primary,
+  },
+  checkboxLabel: {
+    fontSize: 16,
+    color: colors.text,
+  },
+  submitButton: {
+    flexDirection: 'row',
+    backgroundColor: colors.primary,
+    marginHorizontal: spacing.md,
+    marginTop: spacing.lg,
+    padding: spacing.lg,
+    borderRadius: radius.md,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing.sm,
+    ...shadows.card,
+  },
+  submitButtonText: {
+    color: 'white',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
 });

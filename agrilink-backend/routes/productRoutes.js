@@ -1,22 +1,32 @@
 import express from "express";
-import { getProducts, createProduct, updateProduct, deleteProduct, markAsSoldOut, getSalesPlot } from "../controllers/productController.js";
+import {
+  getProducts,
+  getProduct,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+  toggleSoldOut,
+  getSalesAnalytics
+} from "../controllers/productController.js";
+import {
+  validateProduct,
+  validateId,
+  handleValidationErrors
+} from "../middleware/validationMiddleware.js";
 
 const router = express.Router();
 
+// Product routes
 router.get("/", getProducts);
-router.get("/:id", async (req, res) => {
-  try {
-    const product = await (await import("../models/Product.js")).default.findById(req.params.id);
-    if (!product) return res.status(404).json({ error: "Product not found" });
-    res.json(product);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-router.post("/", createProduct);
-router.put("/:id", updateProduct);
-router.delete("/:id", deleteProduct);
-router.patch("/:id/soldout", markAsSoldOut);
-router.get("/sales/plot", getSalesPlot);
+router.get("/:id", validateId, handleValidationErrors, getProduct);
+router.post("/", validateProduct, handleValidationErrors, createProduct);
+router.put("/:id", validateId, validateProduct, handleValidationErrors, updateProduct);
+router.delete("/:id", validateId, handleValidationErrors, deleteProduct);
+
+// Special operations
+router.patch("/:id/toggle-soldout", validateId, handleValidationErrors, toggleSoldOut);
+
+// Analytics
+router.get("/analytics/sales", getSalesAnalytics);
 
 export default router;

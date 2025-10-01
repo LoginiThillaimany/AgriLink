@@ -41,7 +41,7 @@ export default function TabLayout() {
             href: null,
             tabBarButton: () => (
             <TouchableOpacity
-                onPress={() => router.push("/products/AddProduct")}
+                onPress={() => router.push("/products/ProductList")}
                 style={{
                 width: 65,
                 height: 65,

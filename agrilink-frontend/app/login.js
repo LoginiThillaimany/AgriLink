@@ -19,7 +19,7 @@ export default function LoginPage() {
     setTimeout(() => {
       setIsLoading(false);
       // After successful login, navigate to home
-      router.replace("/(tabs)/home");
+      router.replace("products/AddProduct");
     }, 1500);
   };
 
