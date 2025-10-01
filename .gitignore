@@ -1,0 +1,53 @@
+# -----------------
+# Environment files
+# -----------------
+.env
+.env.local
+.env.*.local
+agrilink-backend/.env
+agrilink-frontend/.env
+
+# -----------------
+# Dependencies
+# -----------------
+node_modules/
+package-lock.json
+yarn.lock
+npm-debug.log*
+yarn-error.log
+pnpm-debug.log*
+
+# -----------------
+# Logs
+# -----------------
+logs
+*.log
+
+# -----------------
+# Build outputs
+# -----------------
+dist/
+build/
+android/
+ios/
+
+# -----------------
+# Expo / React Native
+# -----------------
+.expo/
+.expo-shared/
+*.expo
+
+# -----------------
+# IDE / Editor files
+# -----------------
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# -----------------
+# OS / System files
+# -----------------
+.DS_Store
+Thumbs.db
