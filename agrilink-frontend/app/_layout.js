@@ -31,7 +31,7 @@ export default function RootLayout() {
           name="signup" 
           options={{ 
             title: 'Sign Up',
-            presentation: 'modal'  
+            presentation: 'modal'
           }} 
         />
 
@@ -57,6 +57,22 @@ export default function RootLayout() {
             headerShown: false
           }} 
         />
+         <Stack.Screen 
+          name="paymentsuccess" 
+          options={{ 
+            title: 'paymentsuccess',
+            headerShown: false
+          }} 
+        />
+
+         <Stack.Screen 
+          name="paymentmethod" 
+          options={{ 
+            title: 'paymentmethod',
+            headerShown: false
+          }} 
+        />
+        
       </Stack>
     </SafeAreaView>
   );
