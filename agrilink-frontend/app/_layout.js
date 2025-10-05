@@ -31,7 +31,7 @@ export default function RootLayout() {
           name="signup" 
           options={{ 
             title: 'Sign Up',
-            presentation: 'modal'
+            presentation: 'modal'  
           }} 
         />
 
