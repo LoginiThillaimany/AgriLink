@@ -9,7 +9,7 @@ export default function PaymentSuccessPage() {
     // Auto navigate to home after 3 seconds
     const timer = setTimeout(() => {
       router.replace('/');
-    }, 3000);
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, []);
