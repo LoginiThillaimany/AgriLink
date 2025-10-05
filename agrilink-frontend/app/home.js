@@ -1,123 +1,239 @@
-// app/home.js
-import { Ionicons } from '@expo/vector-icons';
+import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { router } from 'expo-router';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
-
-export default function HomePage() {
+ 
+export default function CustomerHome() {
+  const categories = [
+    { id: 1, name: 'Vegetables' },
+    { id: 2, name: 'Fruits' },
+    { id: 3, name: 'Grains' },
+  ];
+ 
+  const products = [
+    { id: 1, name: 'Organic Vine Ripe Tomatoes', price: 'Rs3.99', image: 'https://images.unsplash.com/photo-1601004890684-d8cbf643f5f2?w=400' },
+    { id: 2, name: 'Crisp Green Leaf Lettuce', price: 'Rs2.49', image: 'https://images.unsplash.com/photo-1560807707-8cc77767d783?w=400' },
+    { id: 3, name: 'Farm Fresh Sweet Potatoes', price: 'Rs1.89', image: 'https://images.unsplash.com/photo-1605478521005-d51e56f3d1a3?w=400' },
+    { id: 4, name: 'Hass Avocados (Pack of 3)', price: 'Rs5.29', image: 'https://images.unsplash.com/photo-1609692814858-fd5d91c71d44?w=400' },
+    { id: 5, name: 'Assorted Bell Peppers', price: 'Rs4.50', image: 'https://images.unsplash.com/photo-1582515073490-dc84e7ba1e79?w=400' },
+    { id: 6, name: 'Sweet Orchard Strawberries', price: 'Rs6.99', image: 'https://images.unsplash.com/photo-1560807707-8cc77767d783?w=400' },
+  ];
+ 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
+      {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.title}>AgriLink</Text>
-        <TouchableOpacity 
-          style={styles.profileButton}
-          onPress={() => router.push('/useraccount')}
-        >
-          <Ionicons name="person-circle" size={30} color="#1B5E20" />
+        <Text style={styles.headerTitle}>Fresh Harvest</Text>
+        <Text style={styles.cartIcon}>🛒</Text>
+      </View>
+ 
+      {/* Search */}
+      <View style={styles.searchContainer}>
+        <Text style={styles.searchIcon}>🔍</Text>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search products"
+          placeholderTextColor="#999"
+        />
+      </View>
+ 
+      {/* Categories */}
+      <Text style={styles.sectionTitle}>Popular Categories</Text>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.categories}>
+        {categories.map((cat) => (
+          <View key={cat.id} style={styles.categoryCard}>
+            <Text style={styles.categoryIcon}>🌱</Text>
+            <Text style={styles.categoryText}>{cat.name}</Text>
+          </View>
+        ))}
+      </ScrollView>
+ 
+      {/* Products */}
+      <Text style={styles.sectionTitle}>Top Picks for You</Text>
+      <View style={styles.productsGrid}>
+        {products.map((item) => (
+          <View key={item.id} style={styles.productCard}>
+            <Image source={{ uri: item.image }} style={styles.productImage} />
+            <Text style={styles.productName}>{item.name}</Text>
+            <Text style={styles.productPrice}>{item.price}</Text>
+            <TouchableOpacity style={styles.cartButton}>
+              <Text style={styles.cartButtonText}>Add to Cart</Text>
+            </TouchableOpacity>
+          </View>
+        ))}
+      </View>
+ 
+      {/* Bottom Navigation */}
+      <View style={styles.bottomNav}>
+        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/home_farmer')}>
+          <Text style={styles.navIcon}>🏠</Text>
+          <Text style={styles.navText}>Farmer Home</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.navItem, styles.navActive]}>
+          <Text style={[styles.navIcon, styles.navIconActive]}>🛒</Text>
+          <Text style={[styles.navText, styles.navTextActive]}>Customer Home</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem}>
+          <Text style={styles.navIcon}>📦</Text>
+          <Text style={styles.navText}>My Orders</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.navItem}>
+          <Text style={styles.navIcon}>👤</Text>
+          <Text style={styles.navText}>Profile</Text>
         </TouchableOpacity>
       </View>
-      
-      <View style={styles.content}>
-        <Image 
-          source={require('../assets/Logo.png')}
-          style={styles.logo}
-          resizeMode="contain"
-        />
-        
-        <Text style={styles.welcomeText}>Welcome to AgriLink!</Text>
-        <Text style={styles.subtitle}>Your farming companion</Text>
-        
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity 
-            style={styles.button}
-            onPress={() => router.push('/useraccount')}
-          >
-            <Ionicons name="person-outline" size={20} color="white" />
-            <Text style={styles.buttonText}>View Profile</Text>
-          </TouchableOpacity>
-          
-          <TouchableOpacity 
-            style={[styles.button, styles.secondaryButton]}
-            onPress={() => router.push('/login')}
-          >
-            <Ionicons name="log-out-outline" size={20} color="#1B5E20" />
-            <Text style={[styles.buttonText, styles.secondaryButtonText]}>Logout</Text>
-          </TouchableOpacity>
-        </View>
-      </View>
-    </View>
+    </ScrollView>
   );
 }
-
+ 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: '#f9f9f9',
     flex: 1,
-    backgroundColor: '#f8f9fa',
+    paddingHorizontal: 15,
+    paddingTop: 40,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    paddingTop: 60,
-    backgroundColor: '#1B5E20',
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: 'white',
-  },
-  profileButton: {
-    padding: 5,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  logo: {
-    width: 200,
-    height: 200,
-    marginBottom: 30,
-  },
-  welcomeText: {
-    fontSize: 28,
-    fontWeight: 'bold',
-    color: '#1B5E20',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  subtitle: {
-    fontSize: 16,
-    color: '#666',
-    marginBottom: 40,
-    textAlign: 'center',
-  },
-  buttonContainer: {
-    width: '100%',
-    maxWidth: 300,
-  },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#1B5E20',
-    padding: 15,
-    borderRadius: 10,
     marginBottom: 15,
   },
-  secondaryButton: {
-    backgroundColor: 'transparent',
-    borderWidth: 2,
-    borderColor: '#1B5E20',
-  },
-  buttonText: {
-    color: 'white',
-    fontSize: 16,
+  headerTitle: {
+    fontSize: 20,
     fontWeight: 'bold',
-    marginLeft: 10,
+    color: '#133332',
   },
-  secondaryButtonText: {
+  cartIcon: {
+    fontSize: 24,
+  },
+  searchContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    paddingHorizontal: 10,
+    height: 45,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: '#ddd',
+  },
+  searchIcon: {
+    fontSize: 20,
+    marginRight: 8,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 10,
+    marginTop: 10,
+  },
+  categories: {
+    marginBottom: 20,
+  },
+  categoryCard: {
+    backgroundColor: '#fff',
+    padding: 15,
+    borderRadius: 12,
+    marginRight: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 100,
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  categoryIcon: {
+    fontSize: 28,
+    marginBottom: 8,
+  },
+  categoryText: {
+    marginTop: 8,
+    fontSize: 14,
+    color: '#333',
+    fontWeight: '500',
+  },
+  productsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
+  productCard: {
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    padding: 10,
+    marginBottom: 15,
+    width: '48%',
+    shadowColor: '#000',
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  productImage: {
+    width: '100%',
+    height: 100,
+    borderRadius: 8,
+    marginBottom: 8,
+  },
+  productName: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#333',
+    marginBottom: 5,
+  },
+  productPrice: {
+    fontSize: 14,
+    color: '#1B5E20',
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  cartButton: {
+    backgroundColor: '#1B5E20',
+    paddingVertical: 8,
+    borderRadius: 8,
+    alignItems: 'center',
+  },
+  cartButtonText: {
+    color: '#fff',
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  bottomNav: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+    backgroundColor: '#fff',
+    paddingVertical: 12,
+    borderTopWidth: 1,
+    borderColor: '#eee',
+    marginTop: 10,
+  },
+  navItem: {
+    alignItems: 'center',
+  },
+  navIcon: {
+    fontSize: 22,
+    marginBottom: 4,
+  },
+  navIconActive: {
     color: '#1B5E20',
   },
+  navText: {
+    fontSize: 12,
+    color: '#666',
+    marginTop: 4,
+  },
+  navActive: {
+    borderTopWidth: 2,
+    borderColor: '#1B5E20',
+    paddingTop: 2,
+  },
+  navTextActive: {
+    color: '#1B5E20',
+    fontWeight: '600',
+  },
 });
+ 

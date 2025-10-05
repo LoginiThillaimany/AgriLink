@@ -57,6 +57,13 @@ export default function RootLayout() {
             headerShown: false
           }} 
         />
+          <Stack.Screen 
+          name="homefarmer" 
+          options={{ 
+            title: 'homefarmer',
+            headerShown: false
+          }} 
+        />
          <Stack.Screen 
           name="paymentsuccess" 
           options={{ 
