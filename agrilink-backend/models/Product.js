@@ -53,7 +53,7 @@ const productSchema = new mongoose.Schema({
     type: String,
     validate: {
       validator: function(v) {
-        return !v || v.startsWith('data:image/') || v.startsWith('http');
+        return !v || v.startsWith('data:image/') || v.startsWith('http') || v.startsWith('blob:');
       },
       message: 'Invalid image format'
     }

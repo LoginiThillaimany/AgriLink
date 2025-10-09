@@ -3,6 +3,20 @@ import { Platform } from 'react-native';
 
 // API Configuration
 const getBaseURL = () => {
+  // Allow overriding via Expo public env var for physical devices
+  const fromEnv = process.env.EXPO_PUBLIC_API_URL;
+  if (fromEnv && typeof fromEnv === 'string' && fromEnv.trim().length > 0) {
+    let env = fromEnv.trim().replace(/\/$/, '');
+    // Handle malformed values like ":5000" → "http://localhost:5000"
+    if (env.startsWith(':')) {
+      return `http://localhost${env}`;
+    }
+    // If protocol missing, prefix with http://
+    if (!/^https?:\/\//i.test(env)) {
+      env = `http://${env}`;
+    }
+    return env;
+  }
   if (Platform.OS === 'android') {
     return 'http://10.0.2.2:5000'; // Android emulator
   } else if (Platform.OS === 'ios') {

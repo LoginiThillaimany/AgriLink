@@ -27,7 +27,8 @@ app.get("/health", (req, res) => {
 });
 
 // Routes
-app.use(`/api/${process.env.API_VERSION}/products`, productRoutes);
+const apiVersion = process.env.API_VERSION || "v1";
+app.use(`/api/${apiVersion}/products`, productRoutes);
 
 // Error handling
 app.use(notFound);

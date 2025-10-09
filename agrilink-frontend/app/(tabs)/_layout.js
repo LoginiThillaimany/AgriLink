@@ -27,7 +27,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="products/ProductList"
         options={{
-          title: "Products",
+          title: "My Products",
           tabBarIcon: ({ color }) => (
             <Ionicons name="list-outline" size={24} color={color} />
           ),
@@ -36,7 +36,7 @@ export default function TabLayout() {
 
       {/* Floating Add Button (not a real screen) */}
      <Tabs.Screen
-        name="addButton"
+        name="AddProduct"
         options={{
             href: null,
             tabBarButton: () => (

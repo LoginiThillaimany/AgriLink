@@ -10,6 +10,7 @@ import {
   Image,
   Platform,
   KeyboardAvoidingView,
+  Modal,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from 'expo-image-picker';
@@ -22,6 +23,7 @@ import LoadingSpinner from "../../components/LoadingSpinner";
 
 const CATEGORIES = ['Vegetables', 'Fruits', 'Grains', 'Others'];
 const DELIVERY_OPTIONS = ['Farm pickup', 'Local delivery', "Farmer's market"];
+const UNITS = ['KG', 'LB', 'Piece'];
 
 export default function AddProduct() {
   const router = useRouter();
@@ -32,7 +34,7 @@ export default function AddProduct() {
     variety: "",
     description: "",
     price: "",
-    unit: "",
+    unit: "KG",
     quantity: "",
     minOrder: "1",
     harvestDate: new Date(),
@@ -43,6 +45,18 @@ export default function AddProduct() {
 
   const [showHarvestPicker, setShowHarvestPicker] = useState(false);
   const [showBestByPicker, setShowBestByPicker] = useState(false);
+  const [showUnitPicker, setShowUnitPicker] = useState(false);
+
+  // Web-compatible date picker handlers
+  const handleHarvestDateChange = (event) => {
+    const date = new Date(event.target.value);
+    updateForm('harvestDate', date);
+  };
+
+  const handleBestByDateChange = (event) => {
+    const date = new Date(event.target.value);
+    updateForm('bestByDate', date);
+  };
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
 
@@ -64,27 +78,44 @@ export default function AddProduct() {
 
   const pickImage = async () => {
     try {
-      const permissionResult = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      
-      if (!permissionResult.granted) {
-        Alert.alert("Permission Required", "Please grant permission to access your photos");
+      // Request both media library and camera permissions for better mobile compatibility
+      const mediaPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
+
+      if (!mediaPermission.granted) {
+        Alert.alert(
+          "Permission Required",
+          "Please grant permission to access your photos to add product images",
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Grant Permission", onPress: () => pickImage() }
+          ]
+        );
         return;
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: [ImagePicker.MediaType.Images],
+        mediaTypes: ImagePicker.MediaType.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
-        base64: true,
       });
 
-      if (!result.canceled) {
-        const base64Image = `data:image/jpeg;base64,${result.assets[0].base64}`;
-        updateForm('image', base64Image);
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        const selectedImage = result.assets[0];
+
+        console.log("Image selected:", selectedImage);
+
+        // Use the URI directly - works better on mobile
+        updateForm('image', selectedImage.uri);
+
+        toastSuccess("Image selected successfully!");
+      } else if (result.canceled) {
+        console.log("Image selection cancelled");
       }
     } catch (error) {
-      toastError("Failed to pick image");
+      console.error("Image picker error:", error);
+      toastError("Failed to pick image. Please try again.");
     }
   };
 
@@ -93,9 +124,9 @@ export default function AddProduct() {
 
     if (!formData.name.trim()) newErrors.name = "Product name is required";
     if (!formData.category) newErrors.category = "Category is required";
-    if (!formData.price || parseFloat(formData.price) <= 0) newErrors.price = "Valid price is required";
-    if (!formData.unit.trim()) newErrors.unit = "Unit is required";
-    if (!formData.quantity || parseInt(formData.quantity) < 0) newErrors.quantity = "Valid quantity is required";
+    if (!formData.price || parseFloat(formData.price) <= 0) newErrors.price = "Valid price is required (in LKR)";
+    if (!formData.unit) newErrors.unit = "Unit is required";
+    if (!formData.quantity || parseInt(formData.quantity) < 0) newErrors.quantity = `Valid quantity is required (in ${formData.unit})`;
     if (formData.bestByDate < formData.harvestDate) {
       newErrors.bestByDate = "Best by date must be after harvest date";
     }
@@ -112,20 +143,38 @@ export default function AddProduct() {
 
     setLoading(true);
     try {
+      const isValidImage = (uri) =>
+        typeof uri === 'string' && (
+          uri.startsWith('http') || 
+          uri.startsWith('data:image/') ||
+          uri.startsWith('blob:') // Support blob URLs for web platform
+        );
+
       const productData = {
-        ...formData,
+        name: formData.name,
+        category: formData.category,
+        variety: formData.variety,
+        description: formData.description,
         price: parseFloat(formData.price),
+        unit: formData.unit,
         quantity: parseInt(formData.quantity),
         minOrder: parseInt(formData.minOrder) || 1,
+        image: isValidImage(formData.image) ? formData.image : undefined,
         harvestDate: formData.harvestDate.toISOString(),
         bestByDate: formData.bestByDate.toISOString(),
+        deliveryOptions: formData.deliveryOptions,
       };
+
+      if (formData.image && !isValidImage(formData.image)) {
+        toastError('Local images are not supported yet. Skipping image.');
+      }
 
       await productAPI.create(productData);
       toastSuccess("Product added successfully!");
-      router.back();
+      // Navigate to product list page
+      router.push('/products/ProductList');
     } catch (error) {
-      toastError(error.message || "Failed to add product");
+      toastError(error?.message || "Failed to add product. Please try again.");
     } finally {
       setLoading(false);
     }
@@ -141,6 +190,12 @@ export default function AddProduct() {
       style={{ flex: 1 }}
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        <View style={styles.backRow}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={20} color={colors.text} />
+            <Text style={styles.backText}>Back to Products</Text>
+          </TouchableOpacity>
+        </View>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Basic Information</Text>
           
@@ -219,32 +274,36 @@ export default function AddProduct() {
 
           <View style={styles.row}>
             <View style={[styles.inputGroup, { flex: 1, marginRight: spacing.sm }]}>
-              <Text style={styles.label}>Price *</Text>
-              <TextInput
-                placeholder="0.00"
-                value={formData.price}
-                onChangeText={(text) => updateForm('price', text)}
-                keyboardType="numeric"
-                style={[styles.input, errors.price && styles.inputError]}
-              />
+              <Text style={styles.label}>Price (LKR) *</Text>
+              <View style={styles.priceInputContainer}>
+                <Text style={styles.currencySymbol}>LKR</Text>
+                <TextInput
+                  placeholder="0.00"
+                  value={formData.price}
+                  onChangeText={(text) => updateForm('price', text)}
+                  keyboardType="numeric"
+                  style={[styles.priceInput, errors.price && styles.inputError]}
+                />
+              </View>
               {errors.price && <Text style={styles.errorText}>{errors.price}</Text>}
             </View>
 
             <View style={[styles.inputGroup, { flex: 1 }]}>
               <Text style={styles.label}>Unit *</Text>
-              <TextInput
-                placeholder="kg, lb, piece"
-                value={formData.unit}
-                onChangeText={(text) => updateForm('unit', text)}
-                style={[styles.input, errors.unit && styles.inputError]}
-              />
+              <TouchableOpacity
+                style={[styles.dropdownButton, errors.unit && styles.inputError]}
+                onPress={() => setShowUnitPicker(true)}
+              >
+                <Text style={styles.dropdownButtonText}>{formData.unit}</Text>
+                <Ionicons name="chevron-down" size={20} color={colors.text} />
+              </TouchableOpacity>
               {errors.unit && <Text style={styles.errorText}>{errors.unit}</Text>}
             </View>
           </View>
 
           <View style={styles.row}>
             <View style={[styles.inputGroup, { flex: 1, marginRight: spacing.sm }]}>
-              <Text style={styles.label}>Available Quantity *</Text>
+              <Text style={styles.label}>Available Quantity ({formData.unit}) *</Text>
               <TextInput
                 placeholder="0"
                 value={formData.quantity}
@@ -256,7 +315,7 @@ export default function AddProduct() {
             </View>
 
             <View style={styles.inputGroup}>
-              <Text style={styles.label}>Min Order</Text>
+              <Text style={styles.label}>Min Order ({formData.unit})</Text>
               <TextInput
                 placeholder="1"
                 value={formData.minOrder}
@@ -273,49 +332,90 @@ export default function AddProduct() {
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Harvest Date</Text>
-            <TouchableOpacity
-              onPress={() => setShowHarvestPicker(true)}
-              style={styles.dateButton}
-            >
-              <Ionicons name="calendar" size={20} color={colors.primary} />
-              <Text style={styles.dateText}>
-                {formData.harvestDate.toLocaleDateString()}
-              </Text>
-            </TouchableOpacity>
-            {showHarvestPicker && Platform.OS !== 'web' && (
-              <DateTimePicker
-                value={formData.harvestDate}
-                mode="date"
-                onChange={(e, date) => {
-                  setShowHarvestPicker(false);
-                  if (date) updateForm('harvestDate', date);
+            {Platform.OS === 'web' ? (
+              <input
+                type="date"
+                value={formData.harvestDate.toISOString().split('T')[0]}
+                onChange={handleHarvestDateChange}
+                style={{
+                  borderWidth: 1,
+                  borderColor: colors.border,
+                  borderRadius: radius.md,
+                  padding: spacing.md,
+                  fontSize: 16,
+                  backgroundColor: colors.surface,
+                  width: '100%',
                 }}
               />
+            ) : (
+              <>
+                <TouchableOpacity
+                  onPress={() => setShowHarvestPicker(true)}
+                  style={styles.dateButton}
+                >
+                  <Ionicons name="calendar" size={20} color={colors.primary} />
+                  <Text style={styles.dateText}>
+                    {formData.harvestDate.toLocaleDateString()}
+                  </Text>
+                </TouchableOpacity>
+                {showHarvestPicker && (
+                  <DateTimePicker
+                    value={formData.harvestDate}
+                    mode="date"
+                    onChange={(e, date) => {
+                      setShowHarvestPicker(false);
+                      if (date) updateForm('harvestDate', date);
+                    }}
+                  />
+                )}
+              </>
             )}
           </View>
 
           <View style={styles.inputGroup}>
             <Text style={styles.label}>Best By Date</Text>
-            <TouchableOpacity
-              onPress={() => setShowBestByPicker(true)}
-              style={styles.dateButton}
-            >
-              <Ionicons name="calendar" size={20} color={colors.primary} />
-              <Text style={styles.dateText}>
-                {formData.bestByDate.toLocaleDateString()}
-              </Text>
-            </TouchableOpacity>
-            {showBestByPicker && Platform.OS !== 'web' && (
-              <DateTimePicker
-                value={formData.bestByDate}
-                mode="date"
-                onChange={(e, date) => {
-                  setShowBestByPicker(false);
-                  if (date) updateForm('bestByDate', date);
-                }}
-              />
+            {Platform.OS === 'web' ? (
+              <>
+                <input
+                  type="date"
+                  value={formData.bestByDate.toISOString().split('T')[0]}
+                  onChange={handleBestByDateChange}
+                  style={{
+                    borderWidth: 1,
+                    borderColor: errors.bestByDate ? colors.error : colors.border,
+                    borderRadius: radius.md,
+                    padding: spacing.md,
+                    fontSize: 16,
+                    backgroundColor: colors.surface,
+                    width: '100%',
+                  }}
+                />
+                {errors.bestByDate && <Text style={styles.errorText}>{errors.bestByDate}</Text>}
+              </>
+            ) : (
+              <>
+                <TouchableOpacity
+                  onPress={() => setShowBestByPicker(true)}
+                  style={styles.dateButton}
+                >
+                  <Ionicons name="calendar" size={20} color={colors.primary} />
+                  <Text style={styles.dateText}>
+                    {formData.bestByDate.toLocaleDateString()}
+                  </Text>
+                </TouchableOpacity>
+                {showBestByPicker && (
+                  <DateTimePicker
+                    value={formData.bestByDate}
+                    mode="date"
+                    onChange={(e, date) => {
+                      setShowBestByPicker(false);
+                      if (date) updateForm('bestByDate', date);
+                    }}
+                  />
+                )}
+                {errors.bestByDate && <Text style={styles.errorText}>{errors.bestByDate}</Text>}
+              </>
             )}
-            {errors.bestByDate && <Text style={styles.errorText}>{errors.bestByDate}</Text>}
           </View>
         </View>
 
@@ -347,6 +447,49 @@ export default function AddProduct() {
 
         <View style={{ height: spacing.xl }} />
       </ScrollView>
+
+      {/* Unit Picker Modal */}
+      <Modal
+        visible={showUnitPicker}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setShowUnitPicker(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>Select Unit</Text>
+            {UNITS.map((unit) => (
+              <TouchableOpacity
+                key={unit}
+                style={[
+                  styles.modalOption,
+                  formData.unit === unit && styles.modalOptionSelected
+                ]}
+                onPress={() => {
+                  updateForm('unit', unit);
+                  setShowUnitPicker(false);
+                }}
+              >
+                <Text style={[
+                  styles.modalOptionText,
+                  formData.unit === unit && styles.modalOptionTextSelected
+                ]}>
+                  {unit}
+                </Text>
+                {formData.unit === unit && (
+                  <Ionicons name="checkmark" size={20} color={colors.primary} />
+                )}
+              </TouchableOpacity>
+            ))}
+            <TouchableOpacity
+              style={styles.modalCancelButton}
+              onPress={() => setShowUnitPicker(false)}
+            >
+              <Text style={styles.modalCancelText}>Cancel</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </KeyboardAvoidingView>
   );
 }
@@ -500,5 +643,108 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 18,
     fontWeight: 'bold',
+  },
+  priceInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+  },
+  currencySymbol: {
+    paddingHorizontal: spacing.md,
+    fontSize: 16,
+    color: colors.text,
+    fontWeight: '600',
+  },
+  priceInput: {
+    flex: 1,
+    padding: spacing.md,
+    fontSize: 16,
+    backgroundColor: 'transparent',
+    borderWidth: 0,
+  },
+  dropdownButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    padding: spacing.md,
+    backgroundColor: colors.surface,
+  },
+  dropdownButtonText: {
+    fontSize: 16,
+    color: colors.text,
+  },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  modalContent: {
+    backgroundColor: colors.card,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    width: '80%',
+    maxWidth: 300,
+    ...shadows.card,
+  },
+  modalTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: colors.text,
+    textAlign: 'center',
+    marginBottom: spacing.lg,
+  },
+  modalOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: spacing.md,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.md,
+    marginBottom: spacing.sm,
+  },
+  modalOptionSelected: {
+    backgroundColor: colors.primary + '20',
+  },
+  modalOptionText: {
+    fontSize: 16,
+    color: colors.text,
+  },
+  modalOptionTextSelected: {
+    color: colors.primary,
+    fontWeight: '600',
+  },
+  modalCancelButton: {
+    marginTop: spacing.md,
+    paddingVertical: spacing.md,
+    alignItems: 'center',
+    borderTopWidth: 1,
+    borderTopColor: colors.border,
+  },
+  modalCancelText: {
+    fontSize: 16,
+    color: colors.text,
+    fontWeight: '600',
+  },
+  backRow: {
+    paddingHorizontal: spacing.md,
+    paddingTop: spacing.md,
+    paddingBottom: spacing.sm,
+  },
+  backButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+  },
+  backText: {
+    fontSize: 14,
+    color: colors.text,
+    fontWeight: '600',
   },
 });

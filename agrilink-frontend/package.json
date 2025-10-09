@@ -1,15 +1,9 @@
 {
   "name": "agrilink-frontend",
-<<<<<<< HEAD
-  "license": "0BSD",
-  "version": "1.0.0",
-  "main": "index.js",
-=======
   "version": "1.0.0",
   "license": "0BSD",
   "main": "expo-router/entry",
   "private": true,
->>>>>>> product-management
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -17,28 +11,10 @@
     "web": "expo start --web"
   },
   "dependencies": {
-<<<<<<< HEAD
-    "@expo/metro-runtime": "~5.0.4",
-    "@tailwindcss/vite": "^4.1.12",
-    "expo": "~53.0.22",
-    "expo-status-bar": "~2.2.3",
-    "nativewind": "^4.1.23",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
-    "react-native": "0.79.6",
-    "react-native-svg": "15.11.2",
-    "react-native-web": "^0.20.0",
-    "tailwindcss": "4.1"
-  },
-  "devDependencies": {
-    "@babel/core": "^7.20.0"
-  },
-  "private": true
-=======
     "@expo/metro-runtime": "~6.1.2",
     "@expo/vector-icons": "^15.0.2",
-    "@react-native-community/datetimepicker": "^8.4.4",
-    "@react-native-picker/picker": "^2.11.1",
+    "@react-native-community/datetimepicker": "8.4.4",
+    "@react-native-picker/picker": "2.11.1",
     "@react-navigation/native": "^7.1.6",
     "@react-navigation/native-stack": "^7.3.10",
     "axios": "^1.12.2",
@@ -57,7 +33,7 @@
     "react-native-chart-kit": "^6.12.0",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
-    "react-native-svg": "^15.12.1",
+    "react-native-svg": "15.12.1",
     "react-native-web": "^0.21.0",
     "tailwindcss": "^3.4.1"
   },
@@ -66,5 +42,4 @@
     "@types/react": "~19.1.10",
     "typescript": "~5.9.2"
   }
->>>>>>> product-management
 }

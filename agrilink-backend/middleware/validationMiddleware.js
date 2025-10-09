@@ -55,9 +55,9 @@ export const validateProduct = [
     .optional()
     .custom((value) => {
       if (!value) return true;
-      return value.startsWith("data:image/") || value.startsWith("http");
+      return value.startsWith("data:image/") || value.startsWith("http") || value.startsWith("blob:");
     })
-    .withMessage("Image must be a valid base64 string or URL"),
+    .withMessage("Image must be a valid base64 string, blob URL, or HTTP URL"),
 
   body("harvestDate")
     .optional()
