@@ -28,6 +28,13 @@ const getBaseURL = () => {
 export const API_BASE_URL = getBaseURL();
 export const PRODUCTS_URL = `${API_BASE_URL}/api/v1/products`;
 
+// Auth token management
+let authToken = null;
+
+export function setAuthToken(token) {
+  authToken = token || null;
+}
+
 // Create axios instance
 const apiClient = axios.create({
   baseURL: `${API_BASE_URL}/api/v1`,
@@ -36,6 +43,17 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// Request interceptor to add auth token
+apiClient.interceptors.request.use(
+  (config) => {
+    if (authToken) {
+      config.headers.Authorization = `Bearer ${authToken}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
 // Response interceptor
 apiClient.interceptors.response.use(
@@ -62,6 +80,39 @@ export const productAPI = {
   delete: (id) => apiClient.delete(`/products/${id}`),
   toggleSoldOut: (id) => apiClient.patch(`/products/${id}/toggle-soldout`),
   getSalesAnalytics: (params = {}) => apiClient.get('/products/analytics/sales', { params }),
+};
+
+// Alternative fetch-based API (from teammate's branch)
+async function request(path, { method = 'GET', body, headers = {} } = {}) {
+  const url = `${API_BASE_URL}${path}`;
+  const finalHeaders = { 'Content-Type': 'application/json', ...headers };
+  if (authToken) {
+    finalHeaders['Authorization'] = `Bearer ${authToken}`;
+  }
+  const res = await fetch(url, {
+    method,
+    headers: finalHeaders,
+    body: body ? JSON.stringify(body) : undefined,
+  });
+  const text = await res.text();
+  let data;
+  try {
+    data = text ? JSON.parse(text) : null;
+  } catch (e) {
+    data = text;
+  }
+  if (!res.ok) {
+    const message = (data && data.error) || res.statusText;
+    throw new Error(message);
+  }
+  return data;
+}
+
+export const api = {
+  get: (path) => request(path, { method: 'GET' }),
+  post: (path, body) => request(path, { method: 'POST', body }),
+  put: (path, body) => request(path, { method: 'PUT', body }),
+  del: (path) => request(path, { method: 'DELETE' }),
 };
 
 export default apiClient;

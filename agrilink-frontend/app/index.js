@@ -1,15 +1,26 @@
 import { View, Text, StyleSheet, Image, Platform } from 'react-native';
 import { useEffect } from 'react';
 import { router } from 'expo-router';
+import { useAuth } from '@/context/AuthContext';
 
-export default function LogoPage() {
+export default function Index() {
+  const { user, loading } = useAuth();
+
   useEffect(() => {
-    const timer = setTimeout(() => {
-      router.replace('/login');
-    }, 1000); // brief splash, then go to login
+    if (!loading) {
+      const timer = setTimeout(() => {
+        if (user) {
+          router.replace('/products');
+        } else {
+          router.replace('/login');
+        }
+      }, 2000); // Show splash for 2 seconds, then redirect based on auth status
 
-    return () => clearTimeout(timer);
-  }, []);
+      return () => clearTimeout(timer);
+    }
+  }, [user, loading]);
+
+  if (loading) return null;
 
   return (
     <View style={styles.container}>
@@ -20,7 +31,7 @@ export default function LogoPage() {
         <Text style={styles.title}>AgriLink</Text>
       </View>
       <Text style={styles.subtitle}>Your farming companion</Text>
-      
+
       <View style={styles.loadingContainer}>
         <View style={styles.loadingBar}>
           <View style={styles.progressBar} />

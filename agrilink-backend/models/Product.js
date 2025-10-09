@@ -95,7 +95,13 @@ const productSchema = new mongoose.Schema({
   },
   deletedAt: {
     type: Date
-  }
+  },
+  // Additional fields from teammate's branch
+  inStock: { type: Boolean, default: true },
+  weightKg: { type: Number, default: 1 },
+  rating: { type: Number, default: 4.5 },
+  dateAdded: { type: Date, default: Date.now },
+  farmer: { type: String }
 }, {
   timestamps: true,
   toJSON: { virtuals: true },

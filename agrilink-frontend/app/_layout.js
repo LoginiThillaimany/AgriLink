@@ -1,6 +1,9 @@
 import { Stack } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Platform, View } from "react-native";
+import { CartProvider } from '@/context/CartContext';
+import { ProductsProvider } from '@/context/ProductsContext';
+import { AuthProvider } from '@/context/AuthContext';
 
 let Toaster = null;
 if (Platform.OS === "web") {
@@ -14,25 +17,31 @@ if (Platform.OS === "web") {
 
 export default function RootLayout() {
   return (
-    <SafeAreaView style={{ flex: 1 }}>
-      {Toaster ? (
-        <View style={{ position: "absolute", zIndex: 9999 }}>
-          <Toaster position="top-right" />
-        </View>
-      ) : null}
-      <Stack screenOptions={{ headerShown: false }}>
-        {/* Public routes */}
-        <Stack.Screen name="login" />
-        <Stack.Screen name="signup" />
-        <Stack.Screen name="onboarding" />
-        <Stack.Screen name="forgetpassword" />
+    <AuthProvider>
+      <ProductsProvider>
+        <CartProvider>
+          <SafeAreaView style={{ flex: 1 }}>
+            {Toaster ? (
+              <View style={{ position: "absolute", zIndex: 9999 }}>
+                <Toaster position="top-right" />
+              </View>
+            ) : null}
+            <Stack screenOptions={{ headerShown: false }}>
+              {/* Public routes */}
+              <Stack.Screen name="login" />
+              <Stack.Screen name="signup" />
+              <Stack.Screen name="onboarding" />
+              <Stack.Screen name="forgetpassword" />
 
-        {/* Dashboard (bottom tabs) */}
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              {/* Dashboard (bottom tabs) */}
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
 
-        {/* Products stack (nested inside dashboard) */}
-        <Stack.Screen name="products" options={{ headerShown: false }} />
-      </Stack>
-    </SafeAreaView>
+              {/* Products stack (nested inside dashboard) */}
+              <Stack.Screen name="products" options={{ headerShown: false }} />
+            </Stack>
+          </SafeAreaView>
+        </CartProvider>
+      </ProductsProvider>
+    </AuthProvider>
   );
 }
