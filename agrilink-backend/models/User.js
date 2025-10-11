@@ -80,14 +80,6 @@ userSchema.methods.changedPasswordAfter = function(JWTTimestamp) {
   return false;
 };
 
-module.exports = mongoose.model('User', userSchema);import { Schema, model } from "mongoose";
-
-const userSchema = new Schema({
-  name: { type: String, required: true },
-  email: { type: String, required: true, unique: true, lowercase: true },
-  passwordHash: { type: String, required: true },
-}, { timestamps: true });
-
-export default model('User', userSchema);
+module.exports = mongoose.model('User', userSchema);
 
 
