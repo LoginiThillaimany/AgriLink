@@ -28,7 +28,7 @@ export default function PaymentMethodPage() {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      router.push('/payment-success');
+      router.push('/paymentsuccess');
     }, 2000);
   };
 
