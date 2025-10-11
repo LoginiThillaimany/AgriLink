@@ -78,6 +78,27 @@ export default function AddProduct() {
 
   const pickImage = async () => {
     try {
+      // Handle web platform differently
+      if (Platform.OS === 'web') {
+        // For web, create a file input element
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'image/*';
+        input.onchange = (event) => {
+          const file = event.target.files[0];
+          if (file) {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+              updateForm('image', e.target.result);
+              toastSuccess("Image selected successfully!");
+            };
+            reader.readAsDataURL(file);
+          }
+        };
+        input.click();
+        return;
+      }
+
       // Request both media library and camera permissions for better mobile compatibility
       const mediaPermission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       const cameraPermission = await ImagePicker.requestCameraPermissionsAsync();
@@ -95,7 +116,7 @@ export default function AddProduct() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaType.Images,
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,

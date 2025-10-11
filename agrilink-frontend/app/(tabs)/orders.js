@@ -11,7 +11,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCart } from '@/context/CartContext';
 import { useAuth } from '@/context/AuthContext';
 import { useEffect, useState } from 'react';
-import { api } from '@/lib/api';
+import { api } from '../../lib/api';
 
 const statusIcons = {
   'Processing': (props) => <Ionicons name="time-outline" {...props} />,
