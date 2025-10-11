@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { Stack } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Platform, View } from "react-native";
@@ -45,3 +46,91 @@ export default function RootLayout() {
     </AuthProvider>
   );
 }
+=======
+import { Stack } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+
+export default function RootLayout() {
+  return (
+    <SafeAreaView style={{ flex: 1 }}>
+      <Stack>
+        <Stack.Screen 
+          name="index" 
+          options={{ 
+            title: 'AgriLink',
+            headerShown: false
+          }} 
+        />
+        <Stack.Screen 
+          name="login" 
+          options={{ 
+            title: 'Login',
+            presentation: 'modal'
+          }} 
+        />
+        <Stack.Screen 
+          name="onboarding" 
+          options={{ 
+            title: 'Onboarding',
+            presentation: 'modal'
+          }} 
+        />
+
+         <Stack.Screen 
+          name="signup" 
+          options={{ 
+            title: 'Sign Up',
+            presentation: 'modal'
+          }} 
+        />
+
+         <Stack.Screen 
+          name="forgetpassword" 
+          options={{ 
+            title: 'Forget Password',
+            presentation: 'modal'
+          }} 
+        />
+
+          <Stack.Screen 
+          name="useraccount" 
+          options={{ 
+            title: 'User Account',
+            presentation: 'modal'
+          }} 
+        />
+        <Stack.Screen 
+          name="home" 
+          options={{ 
+            title: 'Home',
+            headerShown: false
+          }} 
+        />
+          <Stack.Screen 
+          name="homefarmer" 
+          options={{ 
+            title: 'homefarmer',
+            headerShown: false
+          }} 
+        />
+         <Stack.Screen 
+          name="paymentsuccess" 
+          options={{ 
+            title: 'paymentsuccess',
+            headerShown: false
+          }} 
+        />
+
+         <Stack.Screen 
+          name="paymentmethod" 
+          options={{ 
+            title: 'paymentmethod',
+            headerShown: false
+          }} 
+        />
+        
+      </Stack>
+    </SafeAreaView>
+  );
+}
+>>>>>>> origin/thirishnaviP

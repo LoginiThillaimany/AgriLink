@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
@@ -35,6 +36,85 @@ export default function LoginPage() {
       router.replace("/products");
     } catch (e) {
       setError(String(e.message || e));
+=======
+// app/login.js
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { Alert, Image, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+
+// Update the handleLogin function
+const handleLogin = async () => {
+  setIsLoading(true);
+  
+  try {
+    const response = await fetch('http://your-server-ip:5000/api/v1/auth/login', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        phoneNumber,
+        password,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (response.ok) {
+      // Save the token and user data
+      console.log('Login successful', data);
+      await AsyncStorage.setItem('userData', JSON.stringify(data.data.user));
+      await AsyncStorage.setItem('authToken', data.token);
+      await AsyncStorage.setItem('userPassword', password); // Store the password
+      // After successful login, navigate to home
+      router.replace('/');
+    } else {
+      Alert.alert('Error', data.message || 'Login failed');
+    }
+  } catch (error) {
+    Alert.alert('Error', 'Network error. Please try again.');
+    console.error('Login error:', error);
+  } finally {
+    setIsLoading(false);
+  }
+};
+
+
+
+export default function LoginPage() {
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleLogin = async () => {
+    if (!phoneNumber || !password) {
+      Alert.alert('Error', 'Please provide phone number and password');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phoneNumber, password }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        console.log('Login successful', data);
+        // Store user data for profile page
+        await AsyncStorage.setItem('userData', JSON.stringify(data.data.user));
+        await AsyncStorage.setItem('authToken', data.token);
+        router.replace('/useraccount');
+      } else {
+        Alert.alert('Login failed', data.message || 'Please try again');
+      }
+    } catch (error) {
+      console.error('Login error:', error);
+      Alert.alert('Error', 'Network error. Please try again.');
+>>>>>>> origin/thirishnaviP
     } finally {
       setIsLoading(false);
     }
@@ -44,6 +124,7 @@ export default function LoginPage() {
     setShowPassword(!showPassword);
   };
 
+<<<<<<< HEAD
   const currentMode = mode === 'login';
 
   return (
@@ -87,6 +168,34 @@ export default function LoginPage() {
         />
       </View>
 
+=======
+  return (
+    <View style={styles.container}>
+      <View style={styles.logoContainer}>
+        <Image 
+          source={require('../assets/Logo.png')}
+          style={styles.logoImage}
+          resizeMode="contain"
+        />
+      </View>
+      
+      <Text style={styles.title}>Welcome Back</Text>
+      <Text style={styles.subtitle}>Sign in to your AgriiLink account</Text>
+      
+      <View style={styles.inputContainer}>
+        <Ionicons name="call-outline" size={20} color="#666" style={styles.inputIcon} />
+        <TextInput
+          style={styles.input}
+          placeholder="Phone Number"
+          placeholderTextColor="#999"
+          keyboardType="phone-pad"
+          value={phoneNumber}
+          onChangeText={setPhoneNumber}
+          autoCapitalize="none"
+        />
+      </View>
+      
+>>>>>>> origin/thirishnaviP
       <View style={styles.inputContainer}>
         <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
         <TextInput
@@ -98,6 +207,7 @@ export default function LoginPage() {
           onChangeText={setPassword}
         />
         <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeIcon}>
+<<<<<<< HEAD
           <Ionicons
             name={showPassword ? "eye-outline" : "eye-off-outline"}
             size={20}
@@ -128,6 +238,36 @@ export default function LoginPage() {
           <Text style={styles.signupLink}>
             {currentMode ? 'Sign Up' : 'Sign In'}
           </Text>
+=======
+          <Ionicons 
+            name={showPassword ? "eye-outline" : "eye-off-outline"} 
+            size={20} 
+            color="#666" 
+          />
+        </TouchableOpacity>
+      </View>
+      
+      <TouchableOpacity 
+        style={[styles.loginButton, isLoading && styles.loginButtonDisabled]}
+        onPress={handleLogin}
+        disabled={isLoading}
+      >
+        {isLoading ? (
+          <Text style={styles.loginButtonText}>Logging in...</Text>
+        ) : (
+          <Text style={styles.loginButtonText}>Login</Text>
+        )}
+      </TouchableOpacity>
+      
+      <TouchableOpacity onPress={() => router.push('/forgetpassword')}>
+        <Text style={styles.forgotPassword}>Forgot Password?</Text>
+      </TouchableOpacity>
+      
+      <View style={styles.signupContainer}>
+        <Text style={styles.signupText}>Don't have an account? </Text>
+        <TouchableOpacity onPress={() => router.push('/signup')}>
+          <Text style={styles.signupLink}>Sign Up</Text>
+>>>>>>> origin/thirishnaviP
         </TouchableOpacity>
       </View>
     </View>
@@ -141,6 +281,7 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'center',
   },
+<<<<<<< HEAD
   logo: {
     width: 100,
     height: 100,
@@ -148,6 +289,16 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 30,
   },
+=======
+  logoContainer: {
+    alignItems: 'center', // This centers the logo horizontally
+    marginBottom: 30,
+  },
+  logoImage: {
+    width: 500,
+    height: 150,
+  },
+>>>>>>> origin/thirishnaviP
   title: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -161,12 +312,15 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 40,
   },
+<<<<<<< HEAD
   error: {
     color: '#DC2626',
     textAlign: 'center',
     marginBottom: 20,
     fontSize: 14,
   },
+=======
+>>>>>>> origin/thirishnaviP
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -220,4 +374,8 @@ const styles = StyleSheet.create({
     color: '#1B5E20',
     fontWeight: 'bold',
   },
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> origin/thirishnaviP

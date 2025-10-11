@@ -1,8 +1,18 @@
 // app/signup.js
+<<<<<<< HEAD
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+=======
+import { Ionicons } from '@expo/vector-icons';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { router } from 'expo-router';
+import { useState } from 'react';
+import { Alert, Image, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from 'react-native';
+import { userEmailService } from '../services/userEmailService';
+
+>>>>>>> origin/thirishnaviP
 
 export default function SignupPage() {
   const [fullName, setFullName] = useState('');
@@ -15,6 +25,7 @@ export default function SignupPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
+<<<<<<< HEAD
   const handleSignup = () => {
     setIsLoading(true);
     // Your signup logic here
@@ -26,6 +37,54 @@ export default function SignupPage() {
       // After successful signup, navigate to home
       router.replace('/');
     }, 1500);
+=======
+  const handleSignup = async () => {
+    if (!fullName || !phoneNumber || !email || !password) {
+      Alert.alert('Error', 'Please fill all required fields');
+      return;
+    }
+    if (password !== confirmPassword) {
+      Alert.alert('Error', 'Passwords do not match');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const response = await fetch('http://localhost:5000/api/v1/auth/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fullName, phoneNumber, email, password, userType }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        console.log('Signup successful', data);
+        
+        // Create email template for the new user
+        try {
+          await userEmailService.createUserTemplate({
+            email: email,
+            fullName: fullName
+          });
+          console.log(`✅ Email template created for ${email}`);
+        } catch (emailError) {
+          console.warn('Email template creation failed:', emailError);
+          // Don't fail signup if email template creation fails
+        }
+        
+        // Store user data for profile page
+        await AsyncStorage.setItem('userData', JSON.stringify(data.data.user));
+        await AsyncStorage.setItem('authToken', data.token);
+        await AsyncStorage.setItem('userPassword', password); // Store the password
+        router.replace('/login');
+      } else {
+        Alert.alert('Signup failed', data.message || 'Please try again');
+      }
+    } catch (error) {
+      console.error('Signup error:', error);
+      Alert.alert('Error', 'Network error. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
+>>>>>>> origin/thirishnaviP
   };
 
   const togglePasswordVisibility = () => {
@@ -39,6 +98,7 @@ export default function SignupPage() {
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
+<<<<<<< HEAD
         <Image 
           source={{ uri: 'https://images.unsplash.com/photo-1535016120720-40c646be5580?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' }}
           style={styles.logo}
@@ -46,6 +106,19 @@ export default function SignupPage() {
         
         <Text style={styles.title}>Create Account</Text>
         <Text style={styles.subtitle}>Join the AgriLink community</Text>
+=======
+        {/* Logo Container to center the logo */}
+        <View style={styles.logoContainer}>
+          <Image 
+            source={require('../assets/Logo.png')}
+            style={styles.logoImage}
+            resizeMode="contain"
+          />
+        </View>
+        
+        <Text style={styles.title}>Create Account</Text>
+        <Text style={styles.subtitle}>Join the AgriiLink community</Text>
+>>>>>>> origin/thirishnaviP
         
         <View style={styles.userTypeContainer}>
           <Text style={styles.userTypeLabel}>I am a:</Text>
@@ -162,8 +235,11 @@ export default function SignupPage() {
             <Text style={styles.loginLink}>Login</Text>
           </TouchableOpacity>
         </View>
+<<<<<<< HEAD
         
        
+=======
+>>>>>>> origin/thirishnaviP
       </View>
     </ScrollView>
   );
@@ -179,6 +255,7 @@ const styles = StyleSheet.create({
     padding: 20,
     paddingVertical: 40,
   },
+<<<<<<< HEAD
   logo: {
     width: 100,
     height: 100,
@@ -186,6 +263,16 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     marginBottom: 20,
   },
+=======
+  logoContainer: {
+    alignItems: 'center', // Centers the logo horizontally
+    marginBottom: 20,
+  },
+  logoImage: {
+    width: 500, // Adjusted to a more reasonable size
+    height: 150, // Adjusted to a more reasonable size
+  },
+>>>>>>> origin/thirishnaviP
   title: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -279,6 +366,7 @@ const styles = StyleSheet.create({
     color: '#1B5E20',
     fontWeight: 'bold',
   },
+<<<<<<< HEAD
   termsText: {
     color: '#666',
     textAlign: 'center',
@@ -288,4 +376,6 @@ const styles = StyleSheet.create({
   termsLink: {
     color: '#1B5E20',
   },
+=======
+>>>>>>> origin/thirishnaviP
 });
