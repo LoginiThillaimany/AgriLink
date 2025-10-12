@@ -27,8 +27,11 @@ export default function ProductDetails() {
       setError(null);
       const response = await productAPI.getById(id);
       
-      if (response.success) {
-        setProduct(response.data);
+      const productData = response.data || response;
+      if (productData) {
+        setProduct(productData);
+      } else {
+        throw new Error('Product not found');
       }
     } catch (err) {
       setError(err.message);

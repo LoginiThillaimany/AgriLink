@@ -1,42 +1,3 @@
-<<<<<<< HEAD
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image } from 'react-native';
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { Ionicons } from '@expo/vector-icons';
-import { useAuth } from '@/context/AuthContext';
-
-export default function LoginPage() {
-  const { login, register, loading } = useAuth();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [mode, setMode] = useState('login');
-
-  const handleLogin = async () => {
-    try {
-      setError('');
-      setIsLoading(true);
-      await login(email, password);
-      router.replace("/products");
-    } catch (e) {
-      setError(String(e.message || e));
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleRegister = async () => {
-    try {
-      setError('');
-      setIsLoading(true);
-      await register(name, email, password);
-      router.replace("/products");
-    } catch (e) {
-      setError(String(e.message || e));
-=======
 // app/login.js
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -114,7 +75,6 @@ export default function LoginPage() {
     } catch (error) {
       console.error('Login error:', error);
       Alert.alert('Error', 'Network error. Please try again.');
->>>>>>> origin/thirishnaviP
     } finally {
       setIsLoading(false);
     }
@@ -124,51 +84,6 @@ export default function LoginPage() {
     setShowPassword(!showPassword);
   };
 
-<<<<<<< HEAD
-  const currentMode = mode === 'login';
-
-  return (
-    <View style={styles.container}>
-      <Image
-        source={{ uri: 'https://images.unsplash.com/photo-1535016120720-40c646be5580?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' }}
-        style={styles.logo}
-      />
-
-      <Text style={styles.title}>{currentMode ? 'Welcome Back' : 'Create Account'}</Text>
-      <Text style={styles.subtitle}>
-        {currentMode ? 'Sign in to your AgriLink account' : 'Join the AgriLink community'}
-      </Text>
-
-      {!!error && <Text style={styles.error}>{error}</Text>}
-
-      {!currentMode && (
-        <View style={styles.inputContainer}>
-          <Ionicons name="person-outline" size={20} color="#666" style={styles.inputIcon} />
-          <TextInput
-            style={styles.input}
-            placeholder="Full Name"
-            placeholderTextColor="#999"
-            value={name}
-            onChangeText={setName}
-            autoCapitalize="words"
-          />
-        </View>
-      )}
-
-      <View style={styles.inputContainer}>
-        <Ionicons name="mail-outline" size={20} color="#666" style={styles.inputIcon} />
-        <TextInput
-          style={styles.input}
-          placeholder="Email Address"
-          placeholderTextColor="#999"
-          keyboardType="email-address"
-          value={email}
-          onChangeText={setEmail}
-          autoCapitalize="none"
-        />
-      </View>
-
-=======
   return (
     <View style={styles.container}>
       <View style={styles.logoContainer}>
@@ -195,7 +110,6 @@ export default function LoginPage() {
         />
       </View>
       
->>>>>>> origin/thirishnaviP
       <View style={styles.inputContainer}>
         <Ionicons name="lock-closed-outline" size={20} color="#666" style={styles.inputIcon} />
         <TextInput
@@ -207,38 +121,6 @@ export default function LoginPage() {
           onChangeText={setPassword}
         />
         <TouchableOpacity onPress={togglePasswordVisibility} style={styles.eyeIcon}>
-<<<<<<< HEAD
-          <Ionicons
-            name={showPassword ? "eye-outline" : "eye-off-outline"}
-            size={20}
-            color="#666"
-          />
-        </TouchableOpacity>
-      </View>
-
-      <TouchableOpacity
-        style={[styles.loginButton, (isLoading || loading) && styles.loginButtonDisabled]}
-        onPress={currentMode ? handleLogin : handleRegister}
-        disabled={isLoading || loading}
-      >
-        <Text style={styles.loginButtonText}>
-          {isLoading || loading ? 'Please wait...' : (currentMode ? 'Login' : 'Create Account')}
-        </Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity onPress={() => router.push('/forgetpassword')}>
-        <Text style={styles.forgotPassword}>Forgot Password?</Text>
-      </TouchableOpacity>
-
-      <View style={styles.signupContainer}>
-        <Text style={styles.signupText}>
-          {currentMode ? "Don't have an account? " : 'Already have an account? '}
-        </Text>
-        <TouchableOpacity onPress={() => setMode(currentMode ? 'register' : 'login')}>
-          <Text style={styles.signupLink}>
-            {currentMode ? 'Sign Up' : 'Sign In'}
-          </Text>
-=======
           <Ionicons 
             name={showPassword ? "eye-outline" : "eye-off-outline"} 
             size={20} 
@@ -267,7 +149,6 @@ export default function LoginPage() {
         <Text style={styles.signupText}>Don't have an account? </Text>
         <TouchableOpacity onPress={() => router.push('/signup')}>
           <Text style={styles.signupLink}>Sign Up</Text>
->>>>>>> origin/thirishnaviP
         </TouchableOpacity>
       </View>
     </View>
@@ -281,15 +162,6 @@ const styles = StyleSheet.create({
     padding: 20,
     justifyContent: 'center',
   },
-<<<<<<< HEAD
-  logo: {
-    width: 100,
-    height: 100,
-    borderRadius: 20,
-    alignSelf: 'center',
-    marginBottom: 30,
-  },
-=======
   logoContainer: {
     alignItems: 'center', // This centers the logo horizontally
     marginBottom: 30,
@@ -298,7 +170,6 @@ const styles = StyleSheet.create({
     width: 500,
     height: 150,
   },
->>>>>>> origin/thirishnaviP
   title: {
     fontSize: 28,
     fontWeight: 'bold',
@@ -312,15 +183,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginBottom: 40,
   },
-<<<<<<< HEAD
-  error: {
-    color: '#DC2626',
-    textAlign: 'center',
-    marginBottom: 20,
-    fontSize: 14,
-  },
-=======
->>>>>>> origin/thirishnaviP
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -374,8 +236,4 @@ const styles = StyleSheet.create({
     color: '#1B5E20',
     fontWeight: 'bold',
   },
-<<<<<<< HEAD
 });
-=======
-});
->>>>>>> origin/thirishnaviP

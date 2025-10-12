@@ -73,13 +73,94 @@ apiClient.interceptors.response.use(
 
 // Product API functions
 export const productAPI = {
-  getAll: (params = {}) => apiClient.get('/products', { params }),
-  getById: (id) => apiClient.get(`/products/${id}`),
-  create: (data) => apiClient.post('/products', data),
-  update: (id, data) => apiClient.put(`/products/${id}`, data),
-  delete: (id) => apiClient.delete(`/products/${id}`),
-  toggleSoldOut: (id) => apiClient.patch(`/products/${id}/toggle-soldout`),
-  getSalesAnalytics: (params = {}) => apiClient.get('/products/analytics/sales', { params }),
+  getAll: async (params = {}) => {
+    try {
+      const response = await apiClient.get('/products', { params });
+      // Normalize response format
+      return {
+        success: true,
+        data: response.data || response,
+        pagination: response.pagination || {
+          hasNextPage: (response.data || response).length === (params.limit || 10),
+          totalItems: (response.data || response).length
+        }
+      };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+  
+  getById: async (id) => {
+    try {
+      const response = await apiClient.get(`/products/${id}`);
+      return {
+        success: true,
+        data: response.data || response
+      };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+  
+  create: async (data) => {
+    try {
+      const response = await apiClient.post('/products', data);
+      return {
+        success: true,
+        data: response.data || response
+      };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+  
+  update: async (id, data) => {
+    try {
+      const response = await apiClient.put(`/products/${id}`, data);
+      return {
+        success: true,
+        data: response.data || response
+      };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+  
+  delete: async (id) => {
+    try {
+      const response = await apiClient.delete(`/products/${id}`);
+      return {
+        success: true,
+        data: response.data || response
+      };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+  
+  toggleSoldOut: async (id) => {
+    try {
+      const response = await apiClient.patch(`/products/${id}/toggle-soldout`);
+      return {
+        success: true,
+        data: response.data || response
+      };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
+  
+  getSalesAnalytics: async (params = {}) => {
+    try {
+      const response = await apiClient.get('/products/analytics/sales', { params });
+      return {
+        success: true,
+        data: response.data || response
+      };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  },
 };
 
 // Alternative fetch-based API (from teammate's branch)

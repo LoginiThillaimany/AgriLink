@@ -1,7 +1,7 @@
 // app/farmerHome.js
 import { View, Text, StyleSheet, TouchableOpacity, ScrollView } from 'react-native';
 import { router } from 'expo-router';
- 
+
 export default function FarmerHome() {
   const categories = [
     { id: 1, name: 'Vegetables', listings: 24 },
@@ -9,7 +9,7 @@ export default function FarmerHome() {
     { id: 3, name: 'Grains', listings: 12 },
     { id: 4, name: 'Redos', listings: 8 },
   ];
- 
+
   return (
     <ScrollView style={styles.container}>
       {/* Header */}
@@ -17,7 +17,7 @@ export default function FarmerHome() {
         <Text style={styles.headerTitle}>Farmer Homepage</Text>
         <Text style={styles.notificationIcon}>🔔</Text>
       </View>
- 
+
       {/* Product Categories */}
       <Text style={styles.sectionTitle}>Product Categories</Text>
       <View style={styles.categoriesGrid}>
@@ -29,24 +29,29 @@ export default function FarmerHome() {
           </TouchableOpacity>
         ))}
       </View>
- 
+
       {/* Quick Actions */}
       <Text style={styles.sectionTitle}>Quick Actions</Text>
-      <TouchableOpacity style={styles.addButton}>
+      
+      {/* Fixed Add Product Button */}
+      <TouchableOpacity
+        style={styles.addButton}
+        onPress={() => router.push('products/AddProduct')}
+      >
         <Text style={styles.addButtonIcon}>➕</Text>
         <Text style={styles.addButtonText}>Add New Product</Text>
       </TouchableOpacity>
- 
+
       <TouchableOpacity style={styles.actionButton}>
         <Text style={styles.actionIcon}>📊</Text>
         <Text style={styles.actionText}>View Sales</Text>
       </TouchableOpacity>
- 
+
       <TouchableOpacity style={styles.actionButton}>
         <Text style={styles.actionIcon}>📋</Text>
         <Text style={styles.actionText}>My Listings</Text>
       </TouchableOpacity>
- 
+
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
         <TouchableOpacity style={[styles.navItem, styles.navActive]}>
@@ -69,7 +74,8 @@ export default function FarmerHome() {
     </ScrollView>
   );
 }
- 
+
+// ... keep your existing styles the same
 const styles = StyleSheet.create({
   container: {
     backgroundColor: '#f9f9f9',

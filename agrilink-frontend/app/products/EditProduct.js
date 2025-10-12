@@ -34,16 +34,21 @@ export default function EditProduct() {
       setError(null);
       const response = await productAPI.getById(id);
       
-      if (response.success) {
+       // Handle both response formats
+       const productData = response.data || response;
+
+      if (productData) {
         setFormData({
-          ...response.data,
-          price: String(response.data.price),
-          quantity: String(response.data.quantity),
-          minOrder: String(response.data.minOrder || 1),
-          harvestDate: response.data.harvestDate ? new Date(response.data.harvestDate) : new Date(),
-          bestByDate: response.data.bestByDate ? new Date(response.data.bestByDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
-          deliveryOptions: response.data.deliveryOptions || [],
+          ...productData,
+          price: String(productData.price),
+          quantity: String(productData.quantity),
+          minOrder: String(productData.minOrder || 1),
+          harvestDate:productData.harvestDate ? new Date(response.data.harvestDate) : new Date(),
+          bestByDate: productData.bestByDate ? new Date(response.data.bestByDate) : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+          deliveryOptions: productData.deliveryOptions || [],
         });
+      }else {
+        throw new Error('Product not found');
       }
     } catch (err) {
       setError(err.message);

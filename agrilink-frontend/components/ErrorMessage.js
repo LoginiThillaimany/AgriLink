@@ -3,15 +3,20 @@ import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, spacing, radius } from '../lib/theme';
 
-export default function ErrorMessage({ message, onRetry }) {
+export default function ErrorMessage({ 
+  message = 'Something went wrong', 
+  onRetry,
+  retryText = 'Try Again'
+}) {
   return (
     <View style={styles.container}>
-      <Ionicons name="alert-circle" size={64} color={colors.error} />
-      <Text style={styles.title}>Something went wrong</Text>
-      <Text style={styles.message}>{message || 'Please try again'}</Text>
+      <Ionicons name="warning-outline" size={64} color={colors.error} />
+      <Text style={styles.title}>Oops!</Text>
+      <Text style={styles.message}>{message}</Text>
       {onRetry && (
-        <TouchableOpacity style={styles.button} onPress={onRetry}>
-          <Text style={styles.buttonText}>Try Again</Text>
+        <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
+          <Ionicons name="refresh" size={20} color="white" />
+          <Text style={styles.retryText}>{retryText}</Text>
         </TouchableOpacity>
       )}
     </View>
@@ -26,24 +31,31 @@ const styles = StyleSheet.create({
     padding: spacing.xl,
   },
   title: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: 'bold',
-    marginTop: spacing.md,
+    color: colors.text,
+    marginTop: spacing.lg,
+    marginBottom: spacing.sm,
   },
   message: {
     fontSize: 16,
     color: colors.textSecondary,
     textAlign: 'center',
-    marginTop: spacing.sm,
+    marginBottom: spacing.lg,
+    lineHeight: 24,
   },
-  button: {
+  retryButton: {
+    flexDirection: 'row',
     backgroundColor: colors.primary,
-    padding: spacing.md,
+    paddingHorizontal: spacing.lg,
+    paddingVertical: spacing.md,
     borderRadius: radius.md,
-    marginTop: spacing.lg,
+    alignItems: 'center',
+    gap: spacing.sm,
   },
-  buttonText: {
+  retryText: {
     color: 'white',
-    fontWeight: 'bold',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

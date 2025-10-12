@@ -42,8 +42,15 @@ export default function ProductList() {
         search: searchTerm,
       });
 
-      if (response.success) {
-        const newProducts = response.data;
+       // Handle both response formats
+       const productsData = response.data || response;
+       const pagination = response.pagination || {
+         hasNextPage: productsData.length === 10,
+         totalItems: productsData.length
+       };
+ 
+       if (response.success || productsData) {
+         const newProducts = Array.isArray(productsData) ? productsData : [];
         
         setProducts(prev => 
           pageNum === 1 ? newProducts : [...prev, ...newProducts]

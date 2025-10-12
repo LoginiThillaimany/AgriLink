@@ -1,17 +1,4 @@
 // app/forgot-password.js
-<<<<<<< HEAD
-import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, Alert, ScrollView } from 'react-native';
-import { router } from 'expo-router';
-import { useState, useRef } from 'react';
-import { Ionicons } from '@expo/vector-icons';
-
-export default function ForgotPasswordPage() {
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [otp, setOtp] = useState(['', '', '', '', '', '']);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [step, setStep] = useState(1); // 1: Enter phone, 2: Enter OTP, 3: New password
-=======
 import { Ionicons } from '@expo/vector-icons';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { router } from 'expo-router';
@@ -26,34 +13,12 @@ export default function ForgotPasswordPage() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [step, setStep] = useState(1); // 1: Enter email, 2: Enter OTP, 3: New password
->>>>>>> origin/thirishnaviP
   const [isLoading, setIsLoading] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   const otpInputs = useRef([]);
 
-<<<<<<< HEAD
-  const handleSendOTP = () => {
-    if (!phoneNumber) {
-      Alert.alert('Error', 'Please enter your phone number');
-      return;
-    }
-    
-    // Basic phone validation (adjust based on your requirements)
-    if (phoneNumber.replace(/\D/g, '').length < 10) {
-      Alert.alert('Error', 'Please enter a valid phone number');
-      return;
-    }
-    
-    setIsLoading(true);
-    // Simulate sending OTP
-    setTimeout(() => {
-      setIsLoading(false);
-      setStep(2);
-      Alert.alert('OTP Sent', 'We have sent a 6-digit code to your phone');
-    }, 1500);
-=======
   // Reset form state
   const resetForm = () => {
     setEmail('');
@@ -141,7 +106,6 @@ export default function ForgotPasswordPage() {
     } finally {
       setIsLoading(false);
     }
->>>>>>> origin/thirishnaviP
   };
 
   const handleOtpChange = (value, index) => {
@@ -170,17 +134,6 @@ export default function ForgotPasswordPage() {
       return;
     }
     
-<<<<<<< HEAD
-    setIsLoading(true);
-    // Simulate OTP verification
-    setTimeout(() => {
-      setIsLoading(false);
-      setStep(3);
-    }, 1500);
-  };
-
-  const handleResetPassword = () => {
-=======
     // Verify OTP against stored OTP
     if (enteredOtp === storedOtp) {
       setIsLoading(true);
@@ -200,7 +153,6 @@ export default function ForgotPasswordPage() {
   };
 
   const handleResetPassword = async () => {
->>>>>>> origin/thirishnaviP
     if (!newPassword || !confirmPassword) {
       Alert.alert('Error', 'Please fill in all password fields');
       return;
@@ -216,24 +168,6 @@ export default function ForgotPasswordPage() {
       return;
     }
     
-<<<<<<< HEAD
-    setIsLoading(true);
-    // Simulate password reset
-    setTimeout(() => {
-      setIsLoading(false);
-      Alert.alert('Success', 'Your password has been reset successfully');
-      router.replace('/login');
-    }, 1500);
-  };
-
-  const resendOTP = () => {
-    setIsLoading(true);
-    // Simulate resending OTP
-    setTimeout(() => {
-      setIsLoading(false);
-      Alert.alert('Code Sent', 'A new verification code has been sent to your phone');
-    }, 1000);
-=======
     try {
       setIsLoading(true);
       
@@ -304,18 +238,11 @@ export default function ForgotPasswordPage() {
     } finally {
       setIsLoading(false);
     }
->>>>>>> origin/thirishnaviP
   };
 
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.container}>
-<<<<<<< HEAD
-        <Image 
-          source={{ uri: 'https://images.unsplash.com/photo-1535016120720-40c646be5580?ixlib=rb-4.0.3&auto=format&fit=crop&w=400&q=80' }}
-          style={styles.logo}
-        />
-=======
       <View style={styles.logoContainer}>
               <Image 
                 source={require('../assets/Logo.png')}
@@ -323,27 +250,12 @@ export default function ForgotPasswordPage() {
                 resizeMode="contain"
               />
             </View>
->>>>>>> origin/thirishnaviP
         
         <Text style={styles.title}>Reset Password</Text>
         
         {step === 1 && (
           <>
             <Text style={styles.subtitle}>
-<<<<<<< HEAD
-              Enter your phone number and we'll send you a code to reset your password
-            </Text>
-            
-            <View style={styles.inputContainer}>
-              <Ionicons name="call-outline" size={20} color="#666" style={styles.inputIcon} />
-              <TextInput
-                style={styles.input}
-                placeholder="Phone Number"
-                placeholderTextColor="#999"
-                keyboardType="phone-pad"
-                value={phoneNumber}
-                onChangeText={setPhoneNumber}
-=======
               Enter your email address and we'll send you a code to reset your password
             </Text>
             
@@ -356,7 +268,6 @@ export default function ForgotPasswordPage() {
                 keyboardType="email-address"
                 value={email}
                 onChangeText={setEmail}
->>>>>>> origin/thirishnaviP
                 autoCapitalize="none"
               />
             </View>
@@ -378,11 +289,7 @@ export default function ForgotPasswordPage() {
         {step === 2 && (
           <>
             <Text style={styles.subtitle}>
-<<<<<<< HEAD
-              Enter the 6-digit code sent to {phoneNumber}
-=======
               Enter the 6-digit code sent to {email}
->>>>>>> origin/thirishnaviP
             </Text>
             
             <View style={styles.otpContainer}>
@@ -438,12 +345,9 @@ export default function ForgotPasswordPage() {
                 secureTextEntry={!showNewPassword}
                 value={newPassword}
                 onChangeText={setNewPassword}
-<<<<<<< HEAD
-=======
                 autoComplete="new-password"
                 autoCorrect={false}
                 autoCapitalize="none"
->>>>>>> origin/thirishnaviP
               />
               <TouchableOpacity onPress={() => setShowNewPassword(!showNewPassword)} style={styles.eyeIcon}>
                 <Ionicons 
@@ -463,12 +367,9 @@ export default function ForgotPasswordPage() {
                 secureTextEntry={!showConfirmPassword}
                 value={confirmPassword}
                 onChangeText={setConfirmPassword}
-<<<<<<< HEAD
-=======
                 autoComplete="new-password"
                 autoCorrect={false}
                 autoCapitalize="none"
->>>>>>> origin/thirishnaviP
               />
               <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)} style={styles.eyeIcon}>
                 <Ionicons 
@@ -495,9 +396,6 @@ export default function ForgotPasswordPage() {
         
         <TouchableOpacity 
           style={styles.secondaryButton} 
-<<<<<<< HEAD
-          onPress={() => step > 1 ? setStep(step - 1) : router.back()}
-=======
           onPress={() => {
             if (step > 1) {
               // Clear password fields when going back
@@ -508,7 +406,6 @@ export default function ForgotPasswordPage() {
               router.push('/login');
             }
           }}
->>>>>>> origin/thirishnaviP
         >
           <Ionicons name="arrow-back" size={16} color="#1B5E20" />
           <Text style={styles.secondaryButtonText}>Back</Text>
@@ -519,8 +416,6 @@ export default function ForgotPasswordPage() {
 }
 
 const styles = StyleSheet.create({
-<<<<<<< HEAD
-=======
 
    logoContainer: {
     alignItems: 'center', // This centers the logo horizontally
@@ -530,7 +425,6 @@ const styles = StyleSheet.create({
     width: 500,
     height: 150,
   },
->>>>>>> origin/thirishnaviP
   scrollContainer: {
     flexGrow: 1,
   },

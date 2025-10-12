@@ -1,6 +1,7 @@
 import { View, Text, StyleSheet, TextInput, TouchableOpacity, Image, ScrollView } from 'react-native';
 import { router } from 'expo-router';
- 
+import { useCart } from '@/context/CartContext';
+
 export default function CustomerHome() {
   const categories = [
     { id: 1, name: 'Vegetables' },
@@ -63,7 +64,7 @@ export default function CustomerHome() {
  
       {/* Bottom Navigation */}
       <View style={styles.bottomNav}>
-        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/home_farmer')}>
+        <TouchableOpacity style={styles.navItem} onPress={() => router.push('/homefarmer')}>
           <Text style={styles.navIcon}>🏠</Text>
           <Text style={styles.navText}>Farmer Home</Text>
         </TouchableOpacity>

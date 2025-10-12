@@ -44,7 +44,7 @@ export default function TabLayout() {
           fontWeight: '500',
         },
       }}>
-      {/* <Tabs.Screen
+      <Tabs.Screen
         name="home"
         options={{
           title: 'Home',
@@ -52,7 +52,7 @@ export default function TabLayout() {
             <Ionicons name="home-outline" size={size} color={color} />
           ),
         }}
-      /> */}
+      />
       <Tabs.Screen
         name="products/ProductList"
         options={{
@@ -62,7 +62,7 @@ export default function TabLayout() {
           ),
         }}
       />
-      {/* <Tabs.Screen
+      <Tabs.Screen
         name="cart"
         options={{
           title: 'Cart',
@@ -70,8 +70,8 @@ export default function TabLayout() {
             <CartTabIcon size={size} color={color} />
           ),
         }}
-      /> */}
-      {/* <Tabs.Screen
+      /> 
+      <Tabs.Screen
         name="orders"
         options={{
           title: 'Orders',
@@ -79,8 +79,8 @@ export default function TabLayout() {
             <Ionicons name="time-outline" size={size} color={color} />
           ),
         }}
-      /> */}
-      {/* <Tabs.Screen
+      />
+      <Tabs.Screen
         name="add-product"
         options={{
           title: 'Add',
@@ -88,8 +88,8 @@ export default function TabLayout() {
             <Ionicons name="add-circle-outline" size={size} color={color} />
           ),
         }}
-      /> */}
-      {/* <Tabs.Screen
+      />
+      <Tabs.Screen
         name="profile"
         options={{
           title: 'Profile',
@@ -97,7 +97,7 @@ export default function TabLayout() {
             <Ionicons name="person-outline" size={size} color={color} />
           ),
         }}
-      /> */}
+      />
     </Tabs>
   );
 }

@@ -33,12 +33,20 @@ export default function SalesTracking() {
       
       const response = await productAPI.getSalesAnalytics({ filter });
       
-      if (response.success) {
-        setData(response.data);
-        processData(response.data);
+      // Handle both response formats
+      const salesData = response.data || response;
+
+      if (response.success || salesData) {
+        setData(Array.isArray(salesData) ? salesData : []);
+        processData(salesData);
+      } else {
+        setData([]);
+        processData([]);
       }
     } catch (err) {
       setError(err.message);
+      setData([]);
+      processData([]);
     } finally {
       setLoading(false);
     }

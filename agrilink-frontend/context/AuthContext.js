@@ -23,7 +23,7 @@ export function AuthProvider({ children }) {
         setLoading(false);
       }
     })();
-  }, []);
+  },[]);
 
   const saveAuth = async (t, u) => {
     setToken(t);

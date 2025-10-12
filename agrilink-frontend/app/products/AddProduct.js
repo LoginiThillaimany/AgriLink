@@ -212,10 +212,16 @@ export default function AddProduct() {
     >
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         <View style={styles.backRow}>
-          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-            <Ionicons name="arrow-back" size={20} color={colors.text} />
-            <Text style={styles.backText}>Back to Products</Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+  onPress={() => {
+    if (router.canGoBack()) router.back();
+    else router.push('/homefarmer');
+  }}
+  style={styles.backButton}
+>
+  <Ionicons name="arrow-back" size={20} color={colors.text} />
+  <Text style={styles.backText}>Back to Products</Text>
+</TouchableOpacity>
         </View>
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Basic Information</Text>
